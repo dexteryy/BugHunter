@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]> <html class="ie6"> <![endif]-->
+<!--[if IE 7 ]> <html class="ie7"> <![endif]-->
+<!--[if IE 8 ]> <html class="ie8"> <![endif]-->
+<!--[if IE 9 ]> <html class="ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html> <!--<![endif]-->
+<head>
+<meta charset="UTF-8">
+<title>大家来找碴之是男人就先找到BUG版</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<link href="/app/css/main.css" rel="stylesheet" />
+</head>
+<body>
+<div class="wrapper"></div>
+<!--<div class="loading"></div>-->
+
+<script type="text/template" id="tplBase">
+<div class="dashboard">
+    <h1>大家来找碴之是男人就先找到BUG版</h1>
+    <div class="me">
+        <a href="http://www.douban.com/people/<%=player.usr%>"><img src="<%=player.avatar%>" class="avatar" /></a>
+        <span class="nick"><%=(player.nic || "未登陆用户")%></span>
+    </div>
+    <div class="status">
+        <input type="text" value="0" class="score" readonly="readonly"/>
+        <label>SCORE</label>
+        <input type="text" value="0" class="score" readonly="readonly"/>
+        <label>ROUND</label>
+        <strong><input type="text" value="0" class="score" readonly="readonly" /></strong>
+        <label>CORRECT</label>
+        <em><input type="text" value="0" class="score" readonly="readonly" /></em>
+        <label>MISTAKE</label>
+    </div>
+    <div class="opt">
+    <% if (player.uid) { %>
+        <span class="bn-flat"><input type="button" value="注销"></span>
+    <% } %>
+    </div>
+</div>
+<div class="aside">
+
+</div>
+<div class="main">
+
+</div>
+</script>
+
+<script src="/app/js/lib/oz.js"></script>
+<script>
+oz.def("jquery-src", "/app/js/lib/jquery_src.js");
+oz.def("jquery-mousewheel", "/app/js/lib/jquery.mousewheel.js");
+oz.def("jquery", "/app/js/lib/jquery.js");
+oz.def("lang", "/app/js/mod/lang.js");
+oz.def("browsers", "/app/js/mod/browsers.js");
+oz.def("event", "/app/js/mod/event.js");
+oz.def("localmodel", "/app/js/mod/localmodel.js");
+oz.def("network", "/app/js/mod/network.js");
+oz.def("template", "/app/js/mod/template.js");
+oz.def("easing", "/app/js/mod/easing.js");
+oz.def("uiproxy", "/app/js/mod/uiproxy.js");
+oz.def("domready", "/app/js/mod/domready.js");
+oz.def("mainloop", "/app/js/mod/mainloop.js");
+oz.def("drag", "/app/js/mod/drag.js");
+oz.def("scrollbar", "/app/js/mod/scrollbar.js");
+oz.def("dialog", "/app/js/mod/dialog.js");
+oz.def("bughunter", "/app/js/bughunter.js");
+oz.require(["jquery", "bughunter", "domready"], function($, app){
+    app.setup({
+        wrapper: $(".wrapper").eq(0)
+    });
+});
+</script>
+</body>
+</html>
