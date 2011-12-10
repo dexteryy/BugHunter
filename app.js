@@ -69,7 +69,11 @@ function route(app){
         score: 0
     };
 
-    var playerLib = {};
+    var playerHall = {};
+
+    function playerInfo(data){
+        return util.config({}, data, _player_data);
+    }
 
     app.get('/', function(req, res, next){
         res.setHeader('Content-Type', 'text/html');
@@ -78,17 +82,31 @@ function route(app){
     });
 
     app.get('/api/base', function(req, res, next){
+        if (req.session.uid && !playerHall[req.session.uid]) {
+            playerHall[req.session.uid] = req.session;
+        }
         var json = {
-            player: util.config({}, req.session, _player_data)
+            player: playerInfo(req.session),
+            hall: Object.keys(playerHall).map(function(uid){
+                return playerInfo(this[uid]);
+            }, playerHall)
         };
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify(json));
     });
 
     app.get('/api/info', function(req, res, next){
-        var json =  util.config({}, req.session, _player_data);
+        var json = playerInfo(req.session);
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify(json));
+    });
+
+    app.get('/auth/logout', function(req, res, next){
+        delete playerHall[req.session.uid];
+        req.session.destroy(function(){
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end(JSON.stringify(_player_data));
+        });
     });
 
     app.get('/auth/douban', function(req, res){
@@ -117,7 +135,10 @@ function route(app){
             var oauth = req.session.oauth;
             oa.getOAuthAccessToken(oauth.token, oauth.token_secret, function(error, oauth_access_token, oauth_access_token_secret, results){
                     if (error){
-                        next(new Error("认证失败: " + error));
+                        res.writeHead(302, {
+                            'Location': main_domain + '/app/login_fail.html'
+                        });
+                        res.end();
                     } else {
                         oauth.token = oauth_access_token;
                         oauth.token_secret = oauth_access_token_secret;
@@ -137,7 +158,6 @@ function route(app){
                                 })[0] || {})["@href"];
                                 req.session.nic = json["title"]["$t"];
                                 req.session.usr = json["db:uid"]["$t"];
-                                playerLib[req.session.uid] = req.session;
                                 res.writeHead(302, {
                                     'Location': main_domain + '/app/login_success.html'
                                 });

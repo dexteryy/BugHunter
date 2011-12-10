@@ -74,11 +74,12 @@ define("template", ["lang"], function(_, require, exports){
         mix: _.mix,
         escapeHTML: escapeHTML,
         substr: substr,
+        include: convertTpl,
         _data_: function(name){
             return _.ns(name, undefined, this);
         }
     };
-    exports.convertTpl = function(str, data){
+    function convertTpl(str, data){
         var c  = tplSettings, tplbox;
         var tmpl = 'var __p=[],print=function(){__p.push.apply(__p,arguments);};' 
                 + 'with(obj){__p.push(\'' +
@@ -96,10 +97,12 @@ define("template", ["lang"], function(_, require, exports){
                     .replace(/\t/g, '\\t')
                 + "');}return __p.join('');";
         var func = !/\W/.test(str) ? c.cache[str] = c.cache[str] || 
-                                        (tplbox = document.getElementById(str)) && exports.convertTpl(tplbox.innerHTML)
+                                        (tplbox = document.getElementById(str)) && convertTpl(tplbox.innerHTML)
                                    : new Function('obj', tmpl);
         return data ? func(_.mix(data, tplMethods)) : func;
-    };
+    }
+
+    exports.convertTpl = convertTpl;
 
 });
 

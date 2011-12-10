@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <meta charset="UTF-8">
 <title>.</title>
-<p>授权成功...稍等...</p>
+<p>授权失败</p>
 <script>
 parent.parent.oz.require(['bughunter'], function(app){
-    app.updatePlayer().then(function(){
+    setTimeout(function(){
         app.closeDialog();
-    });
+    }, 500);
 });
 </script>

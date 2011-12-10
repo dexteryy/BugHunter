@@ -6,7 +6,7 @@
 <!--[if (gt IE 9)|!(IE)]><!--> <html> <!--<![endif]-->
 <head>
 <meta charset="UTF-8">
-<title>大家来找碴之是男人就先找到BUG版</title>
+<title>BugHunter - 大家来找碴之是男人就先找到BUG版</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
 <link href="/app/css/main.css" rel="stylesheet" />
 </head>
@@ -16,32 +16,48 @@
 
 <script type="text/template" id="tplBase">
 <div class="dashboard">
-    <h1>大家来找碴之是男人就先找到BUG版</h1>
-    <div class="me">
-        <a href="http://www.douban.com/people/<%=player.usr%>"><img src="<%=player.avatar%>" class="avatar" /></a>
-        <span class="nick"><%=(player.nic || "未登陆用户")%></span>
-    </div>
-    <div class="status">
-        <input type="text" value="0" class="score" readonly="readonly"/>
-        <label>SCORE</label>
-        <input type="text" value="0" class="score" readonly="readonly"/>
-        <label>ROUND</label>
-        <strong><input type="text" value="0" class="score" readonly="readonly" /></strong>
-        <label>CORRECT</label>
-        <em><input type="text" value="0" class="score" readonly="readonly" /></em>
-        <label>MISTAKE</label>
-    </div>
-    <div class="opt">
-    <% if (player.uid) { %>
-        <span class="bn-flat"><input type="button" value="注销"></span>
-    <% } %>
+    <h1>BugHunter</h1>
+    <div class="playerbox">
+        <%=include("tplPlayer", { player: player })%>
     </div>
 </div>
 <div class="aside">
-
+    <ul class="hall-list">
+        <% hall.forEach(function(player){ %>
+            <li><a href="http://www.douban.com/people/<%=player.usr%>" target="_blank">
+                <input type="text" value="<%=player.score%>" class="score" readonly="readonly" />
+                <img src="<%=player.avatar%>" class="avatar" />
+                <span class="nick"><%=player.nic%></span>
+            </a></li>
+        <% }); %>
+    </ul>
 </div>
 <div class="main">
 
+</div>
+</script>
+
+<script type="text/template" id="tplPlayer">
+<div class="me">
+    <a href="http://www.douban.com/people/<%=player.usr%>"><img src="<%=player.avatar%>" class="avatar" /></a>
+    <span class="nick"><%=(player.nic || "未登陆用户")%></span>
+</div>
+<div class="status">
+    <input type="text" value="<%=(player.uid ? '0' : '-')%>" class="score" readonly="readonly"/>
+    <label>SCORE</label>
+    <input type="text" value="<%=(player.uid ? '0' : '-')%>" class="score" readonly="readonly"/>
+    <label>ROUND</label>
+    <strong><input type="text" value="<%=(player.uid ? '0' : '-')%>" class="score" readonly="readonly" /></strong>
+    <label>CORRECT</label>
+    <em><input type="text" value="<%=(player.uid ? '0' : '-')%>" class="score" readonly="readonly" /></em>
+    <label>MISTAKE</label>
+</div>
+<div class="opt">
+<% if (player.uid) { %>
+    <span class="bn-flat"><input type="button" value="注销" class="logout-btn"></span>
+<% } else { %>
+    <span class="bn-flat"><input type="button" value="用豆瓣账号登陆" class="login-btn"></span>
+<% } %>
 </div>
 </script>
 
@@ -63,6 +79,8 @@ oz.def("mainloop", "/app/js/mod/mainloop.js");
 oz.def("drag", "/app/js/mod/drag.js");
 oz.def("scrollbar", "/app/js/mod/scrollbar.js");
 oz.def("dialog", "/app/js/mod/dialog.js");
+oz.def("bughunter::bus", "/app/js/bughunter.js");
+oz.def("bughunter::view", "/app/js/bughunter.view.js");
 oz.def("bughunter", "/app/js/bughunter.js");
 oz.require(["jquery", "bughunter", "domready"], function($, app){
     app.setup({
