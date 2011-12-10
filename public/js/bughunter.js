@@ -59,8 +59,35 @@ oz.def("bughunter", [
     var localModel = LocalModel();
 
     localModel.watch(":update", function(data){
+        console.info(":update", data);
         view.base.render(data);
     });
+
+    localModel.watch("player:update", function(data){
+        console.info("player:update", data);
+    });
+
+    localModel.watch("hall:update", function(data){
+        console.info("hall:update", data);
+    });
+
+    //
+    localModel.watch("player.a:update", function(data){
+        console.info("player:a", data);
+    });
+    localModel.watch("player.a.y:update", function(data){
+        console.info("player:a.y", data);
+    });
+    localModel.watch("player.b.y:update", function(data){
+        console.info("player:b.y", data);
+    });
+    //localModel.watch("hall.a.y:update", function(data){
+        //console.info("hall:a.y", data);
+    //});
+    localModel.watch("player:get", function(data){
+        console.info("player:get", data);
+    });
+    //
 
     var app = {
 
@@ -69,6 +96,14 @@ oz.def("bughunter", [
             view.init(opt);
             net.getJSON(API_BASE, {}, function(json){
                 localModel.set(json);
+                //
+                localModel.set("player", { j: 1 });
+                localModel.set("player.a", 2);
+                localModel.set("player.a.y", 3);
+                localModel.set("player.b.y", 4);
+                localModel.set("hall.a.y", 5);
+                console.log(localModel.get("player.b"));
+                //
                 if (!json.player.uid) {
                     view.showLogin();
                 }
