@@ -84,7 +84,7 @@ oz.def("bughunter::view", [
         showLibrary: function(){
             this.dialog.set({
                 title: "题库",
-                iframeURL: '/library/upload', 
+                iframeURL: '/library/quiz', 
                 width: 600,
                 buttons: []
             }).open();
@@ -112,7 +112,7 @@ oz.def("bughunter::view", [
             var card = this.wrapper.find('#hall-player-' + data.uid);
             var new_html = tpl.convertTpl("tplHallPlayer", { player: data });
             if (card[0]) {
-                card.replaceWith(new_html);
+                card.stop().replaceWith(new_html);
             } else {
                 $(new_html).hide()
                     .prependTo(this.wrapper.find(".hall-list"))
@@ -123,7 +123,7 @@ oz.def("bughunter::view", [
 
         removePlayer: function(uid){
             var card = this.wrapper.find('#hall-player-' + uid);
-            card.animate({
+            card.stop().animate({
                 height: 0
             }, 400, function(){
                 card.remove();

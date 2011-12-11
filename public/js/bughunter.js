@@ -70,6 +70,8 @@ oz.def("bughunter", [
     var app = {
 
         setup: function(opt){
+            var self = this;
+
             view.init(opt);
 
             net.getJSON(API_BASE, {}, function(json){
@@ -77,9 +79,8 @@ oz.def("bughunter", [
                 if (!json.player.uid) {
                     view.showLogin();
                 }
+                self.connectServer();
             });
-
-            this.connectServer();
         },
 
         connectServer: function(){
@@ -103,6 +104,10 @@ oz.def("bughunter", [
             server.on('disconnect', reconnect);
             server.on('connect', function(){
                 view.hideConnect();
+                var uid = localModel.get('player.uid');
+                if (uid) {
+                    server.emit('checkin', uid);
+                }
             });
 
             function reconnect(){

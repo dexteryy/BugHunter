@@ -81,7 +81,7 @@ define("template", ["lang"], function(_, require, exports){
     };
     function convertTpl(str, data){
         var c  = tplSettings, tplbox;
-        var func = !/\W/.test(str) 
+        var func = !/[\t\r\n% ]/.test(str)
             ?  (c.cache[str] = c.cache[str] 
                         || (tplbox = document.getElementById(str)) && convertTpl(tplbox.innerHTML))
             : new Function('obj', 'var __p=[],print=function(){__p.push.apply(__p,arguments);};' 

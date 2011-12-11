@@ -333,7 +333,7 @@ html,body{
 
 .library-upload{
     width:500px;
-    margin:10px auto;
+    margin:10px auto 0 auto;
     overflow:hidden;
 }
 .library-upload p{
@@ -367,7 +367,24 @@ html,body{
     width:70px;
     margin:0 10px 0 0;
 }
+.library-upload .pic{
+    text-align:center;
+}
+.library-upload .pic img{
+    width:360px;
+    border:1px solid #eee;
+    padding:4px;
+}
 .library-upload .opt{
     clear:both;
     text-align:center;
+    position:relative;
+    width:400px;
+    margin:0 auto 15px auto;
+    float:none;
+}
+.library-upload .delete-bn{
+    position:absolute;
+    bottom:15px;
+    right:0;
 }
