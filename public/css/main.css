@@ -120,6 +120,7 @@ html,body{
 }
 
 .dashboard{
+    position:relative;
     height:100%;
     width:200px;
     float:left;
@@ -218,6 +219,7 @@ html,body{
 .hall-list li{
     width:100%;
     float:left;
+    overflow:hidden;
 }
 .hall-list li a{
     width:100%;
@@ -227,6 +229,10 @@ html,body{
     float:left;
     border-bottom:1px dashed #B3BBB3;
     color:#064513;
+    /*-moz-transition-property: height;*/
+    /*-moz-transition-duration: 0.4s;*/
+    /*-webkit-transition-property: height;*/
+    /*-webkit-transition-duration: 0.4s;*/
 }
 .hall-list li .avatar{
     height:30px;
@@ -261,4 +267,18 @@ html,body{
     border-width:10px 0 10px 0;
     -moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;
     -moz-box-shadow:inset 0 0 6px #666;-webkit-box-shadow:inset 0 0 6px #666;box-shadow:inset 0 0 6px #666;
+}
+
+.connect-tips{
+    width:200px;
+    height:30px;
+    line-height:30px;
+    overflow:hidden;
+    font-size:14px;
+    background:#ffc;
+    border:1px solid #EBE9CB;
+    text-align:center;
+    position:absolute;
+    top:0;left:500px;
+    -moz-box-shadow:0 0 6px #666;-webkit-box-shadow:0 0 6px #666;box-shadow:0 0 6px #666;
 }

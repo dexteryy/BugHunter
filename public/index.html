@@ -20,20 +20,14 @@
     <div class="playerbox">
         <%=include("tplPlayer", { player: player })%>
     </div>
+    <div class="connect-tips">正在连接服务器...</div>
 </div>
 <div class="aside">
     <ul class="hall-list">
-        <% hall.forEach(function(player){ %>
-            <li><a href="http://www.douban.com/people/<%=player.usr%>" target="_blank">
-                <input type="text" value="<%=player.score%>" class="score" readonly="readonly" />
-                <img src="<%=player.avatar%>" class="avatar" />
-                <span class="nick"><%=player.nic%></span>
-            </a></li>
-        <% }); %>
+        <%=include("tplHall", { hall: hall })%>
     </ul>
 </div>
 <div class="main">
-
 </div>
 </script>
 
@@ -61,11 +55,29 @@
 </div>
 </script>
 
+<script type="text/template" id="tplHall">
+<% Object.keys(hall).forEach(function(uid){ %>
+    <%=include("tplHallPlayer", { player: this[uid] })%>
+<% }, hall); %>
+</script>
+
+<script type="text/template" id="tplHallPlayer">
+<li id="hall-player-<%=player.uid%>">
+    <a href="http://www.douban.com/people/<%=player.usr%>" target="_blank">
+        <input type="text" value="<%=player.score%>" class="score" readonly="readonly" />
+        <img src="<%=player.avatar%>" class="avatar" />
+        <span class="nick"><%=player.nic%></span>
+    </a>
+</li>
+</script>
+
 <script src="/app/js/lib/oz.js"></script>
 <script>
 oz.def("jquery-src", "/app/js/lib/jquery_src.js");
 oz.def("jquery-mousewheel", "/app/js/lib/jquery.mousewheel.js");
 oz.def("jquery", "/app/js/lib/jquery.js");
+oz.def("socket.io-src", "/app/js/lib/socket.io/socket.io.js");
+oz.def("socket.io", "/app/js/lib/socket.io.js");
 oz.def("lang", "/app/js/mod/lang.js");
 oz.def("browsers", "/app/js/mod/browsers.js");
 oz.def("event", "/app/js/mod/event.js");

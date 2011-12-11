@@ -1,8 +1,10 @@
 
-var os = require("os");
-var http = require("http");
+var os = require('os');
+var http = require('http');
+var EventEmitter = require('events').EventEmitter;
 var OAuth= require('oauth').OAuth;
-var connect = require("connect");
+var io = require('socket.io');
+var connect = require('connect');
 var mongo = require('mongoose');
 var MongoStore = require('connect-mongodb');
 var util = require('./util');
@@ -58,6 +60,24 @@ mongo.connection.on('open', function() {
     server.listen(MYPORT);
 });
 
+var clients = new EventEmitter();
+var clients_event = ['player:join', 'player:leave'];
+var sio = io.listen(7100, {
+    "log level": 1 
+});
+sio.sockets.on('connection', function (socket) {
+    clients_event.forEach(function(topic){
+        clients.on(topic, fn);
+        socket.on('disconnect', function() {
+            clients.removeListener(topic, fn);
+            socket.removeListener('disconnect', arguments.callee);
+        });
+        function fn(data){
+            socket.emit(topic, data);
+        }
+    });
+});
+
 
 function route(app){
 
@@ -75,6 +95,13 @@ function route(app){
         return util.config({}, data, _player_data);
     }
 
+    function checkNewPlayer(player){
+        if (player.uid && !playerHall[player.uid]) {
+            playerHall[player.uid] = player;
+            clients.emit('player:join', player);
+        }
+    }
+
     app.get('/', function(req, res, next){
         res.setHeader('Content-Type', 'text/html');
         res.write('<a href="/app">[ENTER]</a>');
@@ -82,27 +109,27 @@ function route(app){
     });
 
     app.get('/api/base', function(req, res, next){
-        if (req.session.uid && !playerHall[req.session.uid]) {
-            playerHall[req.session.uid] = req.session;
-        }
+        var player = playerInfo(req.session);
+        checkNewPlayer(player);
         var json = {
-            player: playerInfo(req.session),
-            hall: Object.keys(playerHall).map(function(uid){
-                return playerInfo(this[uid]);
-            }, playerHall)
+            player: player,
+            hall: playerHall
         };
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify(json));
     });
 
     app.get('/api/info', function(req, res, next){
-        var json = playerInfo(req.session);
+        var player = playerInfo(req.session);
+        checkNewPlayer(player);
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.end(JSON.stringify(json));
+        res.end(JSON.stringify(player));
     });
 
     app.get('/auth/logout', function(req, res, next){
+        var player = playerHall[req.session.uid];
         delete playerHall[req.session.uid];
+        clients.emit('player:leave', player);
         req.session.destroy(function(){
             res.setHeader('Content-Type', 'application/json; charset=utf-8');
             res.end(JSON.stringify(_player_data));

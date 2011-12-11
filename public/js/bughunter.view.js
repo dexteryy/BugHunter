@@ -52,6 +52,39 @@ oz.def("bughunter::view", [
             }).open();
         },
 
+        showConnect: function(){
+            this.wrapper.find(".connect-tips").animate({
+                top: 0
+            }, 400);
+        },
+
+        hideConnect: function(){
+            this.wrapper.find(".connect-tips").animate({
+                top: -32
+            }, 400);
+        },
+
+        updatePlayer: function(data){
+            var card = this.wrapper.find('#hall-player-' + data.uid);
+            var new_html = tpl.convertTpl("tplHallPlayer", { player: data });
+            if (card[0]) {
+                card.replaceWith(new_html);
+            } else {
+                $(new_html).hide()
+                    .prependTo(view.wrapper.find(".hall-list"))
+                    .fadeIn(400);
+            }
+        },
+
+        removePlayer: function(uid){
+            var card = this.wrapper.find('#hall-player-' + uid);
+            card.animate({
+                height: 0
+            }, 400, function(){
+                card.remove();
+            });
+        },
+
         renderBase: function(json){
             view.wrapper[0].innerHTML = tpl.convertTpl("tplBase", json);
             bus.fire("view:update");
@@ -62,6 +95,13 @@ oz.def("bughunter::view", [
                 player: json
             });
             bus.fire("view.player:update");
+        },
+
+        renderHall: function(json){
+            view.wrapper.find(".hall-list")[0].innerHTML = tpl.convertTpl("tplHall", {
+                hall: json
+            });
+            bus.fire("view.hall:update");
         }
 
     };

@@ -6,10 +6,11 @@ oz.def("bughunter::bus", ["event"], function(Event){
 oz.def("bughunter", [
     "lang",
     "network",
+    "socket.io",
     "localmodel",
     "bughunter::bus",
     "bughunter::view"
-], function(_, net, LocalModel, bus, view){
+], function(_, net, io, LocalModel, bus, view){
 
     var API_BASE = '/api/base',
         API_INFO = '/api/info',
@@ -18,12 +19,19 @@ oz.def("bughunter", [
     var localModel = LocalModel();
 
     localModel.watch(":update", function(data){
-                console.info(data)
         view.renderBase(data);
     });
 
     localModel.watch("player:update", function(data){
         view.renderPlayer(data);
+    });
+
+    localModel.watch("hall.*:update", function(data){
+        view.updatePlayer(data);
+    });
+
+    localModel.watch("hall.*:delete", function(data){
+        view.removePlayer(data.uid);
     });
 
     bus.bind("logout", function(){
@@ -32,17 +40,71 @@ oz.def("bughunter", [
         });
     });
 
+    var server_events = {
+
+        'player:join': function (data) {
+            localModel.set("hall." + data.uid, data);
+        },
+
+        'player:leave': function (data) {
+            localModel.remove("hall." + data.uid);
+        },
+
+        'quiz:begin': function (data) {
+
+        },
+
+        'quiz:end': function (data) {
+
+        }
+
+    };
+
     var app = {
 
         setup: function(opt){
-            var self = this;
             view.init(opt);
+
             net.getJSON(API_BASE, {}, function(json){
                 localModel.set(json);
                 if (!json.player.uid) {
                     view.showLogin();
                 }
             });
+
+            this.connectServer();
+        },
+
+        connectServer: function(){
+            var self = this;
+            var server = this.server;
+
+            if (server && typeof server === "object" && server.socket.connected) {
+                server.disconnect();
+                return;
+            }
+
+            server = this.server = io.connect("http://" + location.hostname, {
+                port: 7100
+            });
+
+            Object.keys(server_events).forEach(function(topic){
+                server.on(topic, this[topic]);
+            }, server_events);
+
+            view.showConnect();
+            server.on('disconnect', reconnect);
+            server.on('connect', function(){
+                view.hideConnect();
+            });
+
+            function reconnect(){
+                view.showConnect();
+                self.server = null;
+                self.connectServer();
+            }
+
+            return server;
         },
 
         updatePlayer: function(){

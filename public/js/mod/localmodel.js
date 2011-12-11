@@ -24,6 +24,10 @@ define("localmodel", [
             return this.data(target, v);
         },
 
+        remove: function(target){
+            return this.data(target, null);
+        },
+
         data: function(target, v){
             var n, holder, notify, notifyValue,
                 pointer = this,
@@ -41,11 +45,15 @@ define("localmodel", [
                     q = target.split(".").reverse();
                 pointer = this._localModel;
                 while (n = q.pop()) {
-                    if (typeof pointer[n] === 'undefined') {
+                    if (pointer[n] == undefined) {
                         pointer[n] = {};
                     }
-                    topic.push(n);
+                    topic.push('*');
                     holder = topic.join(".") + ":" + action;
+                    if (!r[holder]) {
+                        topic[topic.length - 1] = n;
+                        holder = topic.join(".") + ":" + action;
+                    }
                     if (r[holder]) {
                         notify = holder;
                         notifyValue = pointer[n];
@@ -63,7 +71,12 @@ define("localmodel", [
                 }
             }
             if (hasV) {
-                pointer[n] = v;
+                if (v) {
+                    pointer[n] = v;
+                } else {
+                    v = pointer[n];
+                    delete pointer[n];
+                }
                 if (notify === holder) {
                     notifyValue = v;
                 }
