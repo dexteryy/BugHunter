@@ -23,11 +23,18 @@ oz.def("bughunter", [
     });
 
     localModel.watch("player:update", function(data){
-        view.renderPlayer(data);
+        view.renderStatus(data);
+    });
+
+    localModel.watch("hall:update", function(data){
+        view.renderHall(data);
     });
 
     localModel.watch("hall.*:update", function(data){
         view.updatePlayer(data);
+        if (data.uid == localModel.get('player.uid')) {
+            view.renderStatus(data);
+        }
     });
 
     localModel.watch("hall.*:delete", function(data){

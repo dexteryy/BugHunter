@@ -7,7 +7,8 @@ var io = require('socket.io');
 var connect = require('connect');
 var mongo = require('mongoose');
 var MongoStore = require('connect-mongodb');
-var util = require('./util');
+var _ = require('./lang');
+var tpl = require('./template');
 
 var DOUBAN_KEY = "058cb157d907c5d810a614078b175188";
 var DOUBAN_SECRET =	"16ea285269a371a0";
@@ -16,6 +17,7 @@ var ONEYEAR = 1000*60*60*24*365;
 var MYIP = (os.networkInterfaces().en1.filter(function(o){ return o.family === 'IPv4'; })[0] || {}).address;
 var MYPORT = 7000;
 var main_domain = 'http://' + MYIP + ':' + MYPORT;
+var admins = ['1137591'];
 
 var oa = new OAuth(
 	"http://www.douban.com/service/auth/request_token",
@@ -40,7 +42,6 @@ var db_url = 'mongodb://' + db_config.host + '/' + db_config.dbname;
 
 
 var server = connect(
-    connect.bodyParser(),
     connect.cookieParser(),
     connect.session({ 
         key: 'sid',
@@ -60,16 +61,16 @@ mongo.connection.on('open', function() {
     server.listen(MYPORT);
 });
 
-var clients = new EventEmitter();
+var broadcast = new EventEmitter();
 var clients_event = ['player:join', 'player:leave'];
 var sio = io.listen(7100, {
     "log level": 1 
 });
 sio.sockets.on('connection', function (socket) {
     clients_event.forEach(function(topic){
-        clients.on(topic, fn);
+        broadcast.on(topic, fn);
         socket.on('disconnect', function() {
-            clients.removeListener(topic, fn);
+            broadcast.removeListener(topic, fn);
             socket.removeListener('disconnect', arguments.callee);
         });
         function fn(data){
@@ -86,19 +87,35 @@ function route(app){
         usr: '',
         nic: '',
         avatar: 'http://img3.douban.com/icon/user_large.jpg',
+        isAdmin: false,
         score: 0
+    };
+
+    var _quiz_data = {
+        title: '',
+        score: '',
+        punish: '',
+        pic: '',
+        w: '',
+        h: '',
+        x: '',
+        y: ''
     };
 
     var playerHall = {};
 
     function playerInfo(data){
-        return util.config({}, data, _player_data);
+        return _.config({}, data, _player_data);
+    }
+
+    function quizInfo(data){
+        return _.config({}, data, _quiz_data);
     }
 
     function checkNewPlayer(player){
         if (player.uid && !playerHall[player.uid]) {
             playerHall[player.uid] = player;
-            clients.emit('player:join', player);
+            broadcast.emit('player:join', player);
         }
     }
 
@@ -126,10 +143,17 @@ function route(app){
         res.end(JSON.stringify(player));
     });
 
+    app.get('/library/upload', function(req, res, next){
+        res.setHeader('Content-Type', 'text/html');
+        res.end(tpl.convertTpl('./template/update.tpl', quizInfo({
+            score: 10
+        })));
+    });
+
     app.get('/auth/logout', function(req, res, next){
         var player = playerHall[req.session.uid];
         delete playerHall[req.session.uid];
-        clients.emit('player:leave', player);
+        broadcast.emit('player:leave', player);
         req.session.destroy(function(){
             res.setHeader('Content-Type', 'application/json; charset=utf-8');
             res.end(JSON.stringify(_player_data));
@@ -185,6 +209,9 @@ function route(app){
                                 })[0] || {})["@href"];
                                 req.session.nic = json["title"]["$t"];
                                 req.session.usr = json["db:uid"]["$t"];
+                                if (admins.indexOf(req.session.uid.toString()) !== -1) {
+                                    req.session.isAdmin = true;
+                                }
                                 res.writeHead(302, {
                                     'Location': main_domain + '/app/login_success.html'
                                 });

@@ -6,16 +6,22 @@ oz.def("bughunter::view", [
     "uiproxy",
     "easing",
     "mainloop",
+    "scrollbar",
     "dialog",
     "bughunter::bus"
-], function($, _, tpl, uiproxy, easingLib, mainloop, Dialog, bus){
+], function($, _, tpl, uiproxy, easingLib, mainloop, scrollbar, Dialog, bus){
 
     var uiEventOpt = {
         ".logout-btn": function(){
-            bus.fire("logout");
+            view.alert("注意：注销操作会清除你的所有历史记录", function(){
+                bus.fire("logout");
+            });
         },
         ".login-btn": function(){
             view.showLogin();
+        },
+        ".library-btn": function(){
+            view.showLibrary();
         }
     };
 
@@ -43,11 +49,43 @@ oz.def("bughunter::view", [
 
         },
 
+        alert: function(msg, cb){
+            msg = msg || "操作失败";
+            var dlg = this.dialog;
+            var buttons = [];
+            if (cb) {
+                buttons.push({
+                    text: "确定",
+                    method: function(){
+                        cb();
+                        dlg.close();
+                    }
+                }, "cancel");
+            } else {
+                buttons.push("confirm");
+            }
+            dlg.set({
+                title: "提示",
+                content: '<div class="alert-dlg">' + msg + '</div>',
+                width: 450,
+                buttons: buttons
+            }).open();
+        },
+
         showLogin: function(){
             this.dialog.set({
                 title: "用豆瓣账号登陆",
                 iframeURL: '/app/login.html', 
                 width: 500,
+                buttons: []
+            }).open();
+        },
+
+        showLibrary: function(){
+            this.dialog.set({
+                title: "题库",
+                iframeURL: '/library/upload', 
+                width: 600,
                 buttons: []
             }).open();
         },
@@ -64,6 +102,12 @@ oz.def("bughunter::view", [
             }, 400);
         },
 
+        updateHallSize: function(){
+            scrollbar.init(this.wrapper.find(".aside")[0], {
+                fix: 10
+            });
+        },
+
         updatePlayer: function(data){
             var card = this.wrapper.find('#hall-player-' + data.uid);
             var new_html = tpl.convertTpl("tplHallPlayer", { player: data });
@@ -71,9 +115,10 @@ oz.def("bughunter::view", [
                 card.replaceWith(new_html);
             } else {
                 $(new_html).hide()
-                    .prependTo(view.wrapper.find(".hall-list"))
+                    .prependTo(this.wrapper.find(".hall-list"))
                     .fadeIn(400);
             }
+            this.updateHallSize();
         },
 
         removePlayer: function(uid){
@@ -83,24 +128,27 @@ oz.def("bughunter::view", [
             }, 400, function(){
                 card.remove();
             });
+            this.updateHallSize();
         },
 
         renderBase: function(json){
-            view.wrapper[0].innerHTML = tpl.convertTpl("tplBase", json);
+            this.wrapper[0].innerHTML = tpl.convertTpl("tplBase", json);
+            this.updateHallSize();
             bus.fire("view:update");
         },
 
-        renderPlayer: function(json){
-            view.wrapper.find(".playerbox")[0].innerHTML = tpl.convertTpl("tplPlayer", {
+        renderStatus: function(json){
+            this.wrapper.find(".playerbox")[0].innerHTML = tpl.convertTpl("tplPlayer", {
                 player: json
             });
             bus.fire("view.player:update");
         },
 
         renderHall: function(json){
-            view.wrapper.find(".hall-list")[0].innerHTML = tpl.convertTpl("tplHall", {
+            this.wrapper.find(".hall-list")[0].innerHTML = tpl.convertTpl("tplHall", {
                 hall: json
             });
+            this.updateHallSize();
             bus.fire("view.hall:update");
         }
 

@@ -104,10 +104,47 @@ a.lnk-flat:active { color:#333;background:#ebebeb; }
 .ie7 #dui-mask,
 .ie6 #dui-mask { background:#7F7F7F; filter:alpha(opacity=50); }
 
+.dui-dialog .bd .oz-scrollbar{right:8px;width:8px;}
+
+/* scrollbar */
+.oz-scrollbar{
+    position:absolute;
+    right:4px;
+    top:0;
+    background:#666;
+    width:8px;
+    -moz-border-radius: 5px; -webkit-border-radius: 5px;border-radius: 5px; 
+    opacity:0.7;
+}
+.oz-scroll-top-shadow {
+    position: absolute; top:0; left:0; width:100%; color:transparent; height:10px; opacity:0; z-index:1;
+    background: -webkit-gradient(linear,left top,left bottom,from(rgba(0, 0, 0, .2)),to(transparent));
+    -webkit-mask-box-image: -webkit-gradient(linear,left top,right top,color-stop(0.0,rgba(0,0,0,0)),color-stop(0.5,rgba(0,0,0,.8)),color-stop(1.0,rgba(0,0,0,0)));
+    background-image: -moz-radial-gradient(top,ellipse farthest-side,rgba(0,0,0,.2),rgba(0,0,0,0));
+}
+.oz-scroll-bottom-shadow {
+    position: absolute; bottom:0; left:0; width:100%; color:transparent; height:10px; opacity:0; z-index:1;
+    background: -webkit-gradient(linear,left bottom,left top,from(rgba(0, 0, 0, .2)),to(transparent));
+    -webkit-mask-box-image: -webkit-gradient(linear,left bottom,right bottom,color-stop(0.0,rgba(0,0,0,0)),color-stop(0.5,rgba(0,0,0,.8)),color-stop(1.0,rgba(0,0,0,0)));
+    background-image: -moz-radial-gradient(bottom,ellipse farthest-side,rgba(0,0,0,.2),rgba(0,0,0,0))
+}
+::-webkit-scrollbar { height:9px; width:9px; }
+::-webkit-scrollbar-button:start:decrement,
+::-webkit-scrollbar-button:end:increment { background:transparent; display:none; }
+::-webkit-scrollbar-track-piece { background:transparent; }
+::-webkit-scrollbar-track-piece:vertical:start { border-top-left-radius:5px; border-top-right-radius:5px; border-bottom-right-radius:0; border-bottom-left-radius:0; -webkit-border-top-left-radius:5px; -webkit-border-top-right-radius:5px; -webkit-border-bottom-right-radius:0; -webkit-border-bottom-left-radius:0; }
+::-webkit-scrollbar-track-piece:vertical:end { border-top-left-radius:0; border-top-right-radius:0; border-bottom-right-radius:5px; border-bottom-left-radius:5px; -webkit-border-top-left-radius:0; -webkit-border-top-right-radius:0; -webkit-border-bottom-right-radius:5px; -webkit-border-bottom-left-radius:5px; }
+::-webkit-scrollbar-track-piece:horizontal:start { border-top-left-radius:5px; border-top-right-radius:0; border-bottom-right-radius:0; border-bottom-left-radius:5px; -webkit-border-top-left-radius:5px; -webkit-border-top-right-radius:0; -webkit-border-bottom-right-radius:0; -webkit-border-bottom-left-radius:5px; }
+::-webkit-scrollbar-track-piece:horizontal:end { border-top-left-radius:0; border-top-right-radius:5px; border-bottom-right-radius:5px; border-bottom-left-radius:0; -webkit-border-top-left-radius:0; -webkit-border-top-right-radius:5px; -webkit-border-bottom-right-radius:5px; -webkit-border-bottom-left-radius:0; }
+::-webkit-scrollbar-thumb:vertical,
+::-webkit-scrollbar-thumb:horizontal { background:#999; border-radius:5px; -moz-border-radius:5px; -webkit-border-radius:5px; display:block; height:50px; }
+
+
 /* app */
 
 html,body{
     height:100%;
+    overflow:hidden;
 }
 .wrapper,
 .loading{
@@ -201,8 +238,13 @@ html,body{
     clear:both;
     padding:20px 0 0 0;
 }
+.playerbox .admin{
+    margin:20px 0 0 0;
+    padding:10px 0;
+}
 
 .aside{
+    position:relative;
     background:#E9F5E9;
     width:200px;
     height:100%;
@@ -215,11 +257,17 @@ html,body{
 }
 .hall-list{
     width:400px;
+    overflow:hidden;
 }
 .hall-list li{
     width:100%;
     float:left;
     overflow:hidden;
+}
+.hall-list li.admin .score{
+    color:#090;
+    font-weight:bold;
+    font-size:16px;
 }
 .hall-list li a{
     width:100%;
@@ -281,4 +329,45 @@ html,body{
     position:absolute;
     top:0;left:500px;
     -moz-box-shadow:0 0 6px #666;-webkit-box-shadow:0 0 6px #666;box-shadow:0 0 6px #666;
+}
+
+.library-upload{
+    width:500px;
+    margin:10px auto;
+    overflow:hidden;
+}
+.library-upload p{
+    width:100%;
+    float:left;
+    margin:0 0 15px 0;
+    text-align:left;
+}
+.library-upload label{
+    text-align:right;
+    display:block;
+    width:70px;
+    padding:0 20px 0 0px;
+    height:20px;
+    line-height:20px;
+    float:left;
+    font-size:14px;
+}
+.library-upload input[type=text]{
+    float:left;
+    font-size:14px;
+    height:20px;
+    line-height:20px;
+    width:330px;
+}
+.library-upload input[type=number]{
+    float:left;
+    font-size:14px;
+    height:20px;
+    line-height:20px;
+    width:70px;
+    margin:0 10px 0 0;
+}
+.library-upload .opt{
+    clear:both;
+    text-align:center;
 }

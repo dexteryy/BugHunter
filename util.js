@@ -62,6 +62,21 @@ exports.fnQueue = function(){
     return queue;
 };
 
+exports.ns = function(namespace, v, parent){
+    var i, p = parent || global, n = namespace.split(".").reverse();
+    while ((i = n.pop()) && n.length > 0) {
+        if (typeof p[i] === 'undefined') {
+            p[i] = {};
+        } else if (typeof p[i] !== "object") {
+            return false;
+        }
+        p = p[i];
+    }
+    if (typeof v !== 'undefined')
+        p[i] = v;
+    return p[i];
+};
+
 var mix = exports.mix = function(target) {
     var objs = arguments, l = objs.length, o, copy;
     if (l == 1) {

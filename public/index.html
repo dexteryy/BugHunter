@@ -53,6 +53,11 @@
     <span class="bn-flat"><input type="button" value="用豆瓣账号登陆" class="login-btn"></span>
 <% } %>
 </div>
+<% if (player.isAdmin) { %>
+<div class="admin">
+    <span class="bn-flat"><input type="button" value="题库" class="library-btn"></span>
+</div>
+<% } %>
 </script>
 
 <script type="text/template" id="tplHall">
@@ -62,9 +67,9 @@
 </script>
 
 <script type="text/template" id="tplHallPlayer">
-<li id="hall-player-<%=player.uid%>">
+<li id="hall-player-<%=player.uid%>" class="<%=(player.isAdmin ? 'admin' : '')%>">
     <a href="http://www.douban.com/people/<%=player.usr%>" target="_blank">
-        <input type="text" value="<%=player.score%>" class="score" readonly="readonly" />
+        <input type="text" value="<%=(player.isAdmin ? 'DM' : player.score)%>" class="score" readonly="readonly" />
         <img src="<%=player.avatar%>" class="avatar" />
         <span class="nick"><%=player.nic%></span>
     </a>
