@@ -20,8 +20,17 @@ oz.def("bughunter::view", [
         ".login-btn": function(){
             view.showLogin();
         },
+        ".rank-btn": function(){
+        
+        },
         ".library-btn": function(){
             view.showLibrary();
+        },
+        ".explain-btn": function(){
+        
+        },
+        ".reset-btn": function(){
+        
         }
     };
 
@@ -83,8 +92,8 @@ oz.def("bughunter::view", [
 
         showLibrary: function(){
             this.dialog.set({
-                title: "题库",
-                iframeURL: '/library/quiz', 
+                title: "管理题库",
+                iframeURL: '/library/list', 
                 width: 600,
                 buttons: []
             }).open();
@@ -121,6 +130,26 @@ oz.def("bughunter::view", [
             this.updateHallSize();
         },
 
+        addToStream: function(data){
+            var box = this.wrapper.find(".main");
+            var list = this.wrapper.find(".stream-list").append(
+                tpl.convertTpl("tplStreamItem", { 
+                    env: { pic_width: box[0].offsetWidth * 3/4 },
+                    item: data 
+                })
+            );
+            box[0].scrollTop = list[0].offsetHeight + 100;
+        },
+
+        renderStream: function(data){
+            var box = this.wrapper.find(".main");
+            var list = this.wrapper.find(".stream-list")[0].innerHTML = tpl.convertTpl("tplStream", { 
+                env: { pic_width: box[0].offsetWidth * 3/4 },
+                stream: data 
+            });
+            box[0].scrollTop = list[0].offsetHeight + 100;
+        },
+
         removePlayer: function(uid){
             var card = this.wrapper.find('#hall-player-' + uid);
             card.stop().animate({
@@ -133,6 +162,7 @@ oz.def("bughunter::view", [
 
         renderBase: function(json){
             this.wrapper[0].innerHTML = tpl.convertTpl("tplBase", json);
+            this.renderStream(json.stream);
             this.updateHallSize();
             bus.fire("view:update");
         },

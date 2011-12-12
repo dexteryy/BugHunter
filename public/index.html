@@ -6,7 +6,7 @@
 <!--[if (gt IE 9)|!(IE)]><!--> <html> <!--<![endif]-->
 <head>
 <meta charset="UTF-8">
-<title>BugHunter - 大家来找碴之是男人就先找到BUG版</title>
+<title>BugHunter - 大家来找碴多人对战版</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
 <link href="/app/css/main.css" rel="stylesheet" />
 </head>
@@ -28,6 +28,7 @@
     </ul>
 </div>
 <div class="main">
+    <ul class="stream-list"></ul>
 </div>
 </script>
 
@@ -52,16 +53,19 @@
 <% } else { %>
     <span class="bn-flat"><input type="button" value="用豆瓣账号登陆" class="login-btn"></span>
 <% } %>
+    <span class="bn-flat"><input type="button" value="排行榜" class="rank-btn"></span>
 </div>
 <% if (player.isAdmin) { %>
 <div class="admin">
-    <span class="bn-flat"><input type="button" value="题库" class="library-btn"></span>
+    <span class="bn-flat"><input type="button" value="管理题库" class="library-btn"></span>
+    <span class="bn-flat"><input type="button" value="显示答案" class="explain-btn"></span>
+    <span class="bn-flat"><input type="button" value="清空记录" class="reset-btn"></span>
 </div>
 <% } %>
 </script>
 
 <script type="text/template" id="tplHall">
-<% Object.keys(hall).forEach(function(uid){ %>
+<% Object.keys(hall).reverse().forEach(function(uid){ %>
     <%=include("tplHallPlayer", { player: this[uid] })%>
 <% }, hall); %>
 </script>
@@ -73,6 +77,27 @@
         <img src="<%=player.avatar%>" class="avatar" />
         <span class="nick"><%=player.nic%></span>
     </a>
+</li>
+</script>
+
+<script type="text/template" id="tplStream">
+<% stream.forEach(function(item){ %>
+    <%=include("tplStreamItem", { item: item, env: env })%>
+<% }); %>
+</script>
+
+<script type="text/template" id="tplStreamItem">
+<li id="stream-item-<%=item._id%>">
+    <p class="hd">第<%=item.order%>题：<%=item.title%></p>
+    <p class="meta">
+        <span class="score">答对得分：<%=item.score%></span>
+        <span class="punish">答错扣分：<%=(item.punish || 0)%></span>
+        <span class="date"><%=item.sendDate%></span>
+    </p>
+    <p class="pic">
+        <img src="/<%=item.pic%>" class="pic" style="max-width:<%=(env.pic_width + 'px' || '')%>;"></a>
+        <a href="#" class="quiz-mask"></a>
+    </p>
 </li>
 </script>
 

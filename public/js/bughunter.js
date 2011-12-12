@@ -14,9 +14,11 @@ oz.def("bughunter", [
 
     var API_BASE = '/api/base',
         API_INFO = '/api/info',
-        API_LOGOUT = '/auth/logout';
+        API_LOGOUT = '/auth/logout',
+        
+        quid = 1,
     
-    var localModel = LocalModel();
+        localModel = LocalModel();
 
     localModel.watch(":update", function(data){
         view.renderBase(data);
@@ -41,6 +43,10 @@ oz.def("bughunter", [
         view.removePlayer(data.uid);
     });
 
+    localModel.watch("stream[*]:update", function(data){
+        view.addToStream(data);
+    });
+
     bus.bind("logout", function(){
         net.getJSON(API_LOGOUT, {}, function(){
             app.updatePlayer();
@@ -58,7 +64,8 @@ oz.def("bughunter", [
         },
 
         'quiz:begin': function (data) {
-
+            setStreamInfo(data);
+            localModel.push("stream", data);
         },
 
         'quiz:end': function (data) {
@@ -75,6 +82,7 @@ oz.def("bughunter", [
             view.init(opt);
 
             net.getJSON(API_BASE, {}, function(json){
+                json.stream.forEach(setStreamInfo);
                 localModel.set(json);
                 if (!json.player.uid) {
                     view.showLogin();
@@ -106,7 +114,7 @@ oz.def("bughunter", [
                 view.hideConnect();
                 var uid = localModel.get('player.uid');
                 if (uid) {
-                    server.emit('checkin', uid);
+                    server.emit('hello', uid);
                 }
             });
 
@@ -126,11 +134,20 @@ oz.def("bughunter", [
             return bus.promise("view.player:update");
         },
 
+        deliver: function(qid){
+            this.server.emit('deliver', qid);
+        },
+
         closeDialog: function(){
             view.dialog.close();
         }
 
     };
+
+    function setStreamInfo(item){
+        item.sendDate = new Date().toString().match(/\d+:\d+:\d+/)[0];
+        item.order = quid++;
+    }
 
     return app;
 

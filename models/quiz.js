@@ -2,7 +2,7 @@ var mongo = require('mongoose');
 var Schema = mongo.Schema;
 
 var QuizSchema = new Schema({
-    qid: { type: Schema.ObjectId },
+    //qid: Schema.ObjectId,
     title: { type: String, default: '' },
     score: { type: Number, min: 0, required: true },
     punish: { type: Number, default: 0, max: 0 },

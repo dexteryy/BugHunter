@@ -9,6 +9,7 @@ var controller = require('./controller');
 var ONEYEAR = 1000*60*60*24*365;
 
 var server = connect(
+    connect.query(),
     connect.cookieParser(),
     connect.session({ 
         key: 'sid',

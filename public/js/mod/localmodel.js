@@ -24,11 +24,18 @@ define("localmodel", [
             return this.data(target, v);
         },
 
+        push: function(target, v){
+            return this.data(target, v, {
+                append: true
+            });
+        },
+
         remove: function(target){
             return this.data(target, null);
         },
 
-        data: function(target, v){
+        data: function(target, v, opt){
+            opt = opt || {};
             var n, holder, notify, notifyValue,
                 pointer = this,
                 hasV = typeof v !== 'undefined',
@@ -72,7 +79,19 @@ define("localmodel", [
             }
             if (hasV) {
                 if (v) {
-                    pointer[n] = v;
+                    if (!opt.append) {
+                        pointer[n] = v;
+                    } else {
+                        if (!Array.isArray(pointer[n])) {
+                            pointer[n] = [];
+                        }
+                        pointer[n].push(v);
+                        notifyValue = pointer[n];
+                        holder = holder.replace(/:/, '[*]:');
+                        if (this._records[holder]) {
+                            notify = holder;
+                        }
+                    }
                 } else {
                     v = pointer[n];
                     delete pointer[n];
@@ -101,6 +120,10 @@ define("localmodel", [
                 delete this._records[topic];
             }
             this._watcher.bind(topic, fn);
+        },
+
+        validate: function(topic, fn){
+        
         }
     
     };

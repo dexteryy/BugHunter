@@ -22,9 +22,11 @@ var oa = new OAuth(
     null,
     config.main_domain // hack node-oauth for Douban
 );
+
 var playerHall = {};
+var streamLog = [];
 var clients_timeout = {};
-var clients_event = ['player:join', 'player:leave'];
+var clients_event = ['player:join', 'player:leave', 'quiz:begin', 'quiz:end'];
 var broadcast = new EventEmitter();
 
 exports.socketServer = function(client) {
@@ -41,8 +43,8 @@ exports.socketServer = function(client) {
         }
     });
 
-    client.once('checkin', function(uid) {
-        //console.info('checkin', client.id, uid)
+    client.once('hello', function(uid) {
+        //console.info('hello', client.id, uid)
         if (clients_timeout[uid]) {
             clearTimeout(clients_timeout[uid]);
         }
@@ -58,6 +60,14 @@ exports.socketServer = function(client) {
                 delete clients_timeout[uid];
                 //console.info('offline', client.id, uid)
             }, 5000);
+            client.removeAllListeners('deliver');
+        });
+    });
+
+    client.on('deliver', function(uid) {
+        Quiz.findById(uid, function(err, quiz){
+            broadcast.emit('quiz:begin', quiz);
+            streamLog.push(quiz);
         });
     });
 
@@ -79,7 +89,8 @@ exports.routes = {
             checkNewPlayer(player);
             var json = {
                 player: player,
-                hall: playerHall
+                hall: playerHall,
+                stream: streamLog
             };
             res.setHeader('Content-Type', 'application/json; charset=utf-8');
             res.end(JSON.stringify(json));
@@ -95,18 +106,44 @@ exports.routes = {
         }
     },
 
-    '/library/quiz': {
+    '/library/list': {
         handler: function(req, res, next){
+            if (!isAdmin(req.session.uid)) {
+                show403(res);
+            }
             res.setHeader('Content-Type', 'text/html');
-            res.end(tpl.convertTpl('template/upload.tpl', {
-                quiz: {}
-            }));
+            Quiz.find({}, function(err, docs){
+                res.end(tpl.convertTpl('templates/library.tpl', { list: docs }));
+            });
+        }
+    },
+
+    '/library/quiz/:qid': {
+        handler: function(req, res, next){
+            if (!isAdmin(req.session.uid)) {
+                show403(res);
+            }
+            res.setHeader('Content-Type', 'text/html');
+            if (req.params.qid === 'create') {
+                res.end(tpl.convertTpl('templates/upload.tpl', {
+                    quiz: {}
+                }));
+            } else {
+                Quiz.findById(req.params.qid, function(err, quiz){
+                    res.end(tpl.convertTpl('templates/upload.tpl', {
+                        quiz: quiz
+                    }));
+                });
+            }
         }
     },
 
     '/library/upload': {
         type: 'post',
         handler: function(req, res, next){
+            if (!isAdmin(req.session.uid)) {
+                show403(res);
+            }
             var form = new formidable.IncomingForm();
             var quiz = {};
             form.uploadDir = './public/uploads/';
@@ -116,12 +153,24 @@ exports.routes = {
                 quiz[field] = file.path.replace(/public/, 'app');
             }).on('end', function() {
                 res.setHeader('Content-Type', 'text/html');
-                var q = new Quiz(quiz);
-                q.save(function(){
-                    res.end(tpl.convertTpl('template/upload.tpl', {
-                        quiz: q
-                    }));
-                });
+                if (!quiz.qid) {
+                    new Quiz(quiz).save(goback);
+                } else {
+                    Quiz.findById(quiz.qid, function(err, q){
+                        if (quiz.opt === 'delete') {
+                            q.remove(goback);
+                        } else {
+                            _.mix(q, quiz);
+                            q.save(goback);
+                        }
+                    });
+                }
+                function goback(){
+                    res.writeHead(302, {
+                        'Location': config.main_domain + '/library/list'
+                    });
+                    res.end();
+                }
             });
             form.parse(req);
         }
@@ -189,7 +238,7 @@ exports.routes = {
                                     })[0] || {})["@href"];
                                     req.session.nic = json["title"]["$t"];
                                     req.session.usr = json["db:uid"]["$t"];
-                                    if (config.admins.indexOf(req.session.uid.toString()) !== -1) {
+                                    if (isAdmin(req.session.uid)) {
                                         req.session.isAdmin = true;
                                     }
                                     res.writeHead(302, {
@@ -209,10 +258,6 @@ exports.routes = {
 
 };
 
-function quizInfo(data){
-    return _.config({}, data, _quiz_data);
-}
-
 function checkNewPlayer(player){
     if (player.uid && !playerHall[player.uid]) {
         playerHall[player.uid] = player;
@@ -224,5 +269,16 @@ function leaveHall(uid){
     var player = playerHall[uid];
     delete playerHall[uid];
     broadcast.emit('player:leave', player);
+}
+
+function isAdmin(uid){
+    return uid && config.admins.indexOf(uid.toString()) !== -1;
+}
+
+function show403(res){
+    res.writeHead(302, {
+        'Location': config.main_domain + '/app/403.html'
+    });
+    res.end();
 }
 
