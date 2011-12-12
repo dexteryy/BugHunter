@@ -11,7 +11,7 @@
 <div class="library-upload">
 <form action="/library/upload" enctype="multipart/form-data" method="post">
     <p>
-        <label>标题</label><input type="text" name="title" value="<%=quiz.title%>" placeholder="（可选）">
+        <label>标题或描述</label><textarea name="title" placeholder="（可选）"><%=escapeHTML(quiz.title)%></textarea>
     </p>
     <p>
         <label>分数</label><input type="number" name="score" value="<%=quiz.score%>" min="0" step="1" placeholder=">= 0" required />

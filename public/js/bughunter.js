@@ -5,12 +5,13 @@ oz.def("bughunter::bus", ["event"], function(Event){
 
 oz.def("bughunter", [
     "lang",
+    "key",
     "network",
     "socket.io",
     "localmodel",
     "bughunter::bus",
     "bughunter::view"
-], function(_, net, io, LocalModel, bus, view){
+], function(_, Key, net, io, LocalModel, bus, view){
 
     var API_BASE = '/api/base',
         API_INFO = '/api/info',
@@ -18,7 +19,12 @@ oz.def("bughunter", [
         
         quid = 1,
     
+        key = Key(),
         localModel = LocalModel();
+
+    key.down("esc", function(e){
+        e.preventDefault();
+    });
 
     localModel.watch(":update", function(data){
         view.renderBase(data);
@@ -53,23 +59,40 @@ oz.def("bughunter", [
         });
     });
 
+    bus.bind("reset", function(){
+        net.ajax({
+            type: 'POST',
+            url: '/api/reset'
+        })
+    });
+
+    bus.bind("showhand", function(qid, pos){
+        app.showhand(qid, pos);
+    });
+
     var server_events = {
 
-        'player:join': function (data) {
-            localModel.set("hall." + data.uid, data);
+        'player:join': function (player) {
+            localModel.set("hall." + player.uid, player);
         },
 
-        'player:leave': function (data) {
-            localModel.remove("hall." + data.uid);
+        'player:leave': function (player) {
+            localModel.remove("hall." + player.uid);
         },
 
-        'quiz:begin': function (data) {
-            setStreamInfo(data);
-            localModel.push("stream", data);
+        'quiz:begin': function (quiz) {
+            localModel.push("stream", quiz);
         },
 
-        'quiz:end': function (data) {
+        'quiz:end': function (quiz) {
+            view.showQuizResult({
+                quiz: quiz,
+                winner: localModel.get('hall.' + quiz.winner)
+            });
+        },
 
+        'app:reset': function (data) {
+            localModel.set(data);
         }
 
     };
@@ -82,7 +105,6 @@ oz.def("bughunter", [
             view.init(opt);
 
             net.getJSON(API_BASE, {}, function(json){
-                json.stream.forEach(setStreamInfo);
                 localModel.set(json);
                 if (!json.player.uid) {
                     view.showLogin();
@@ -95,34 +117,34 @@ oz.def("bughunter", [
             var self = this;
             var server = this.server;
 
-            if (server && typeof server === "object" && server.socket.connected) {
-                server.disconnect();
-                return;
-            }
+            //if (server && typeof server === "object" && server.socket.connected) {
+                //server.disconnect();
+                //return;
+            //}
 
+            view.showConnect();
             server = this.server = io.connect("http://" + location.hostname, {
                 port: 7100
             });
 
-            Object.keys(server_events).forEach(function(topic){
-                server.on(topic, this[topic]);
-            }, server_events);
-
-            view.showConnect();
-            server.on('disconnect', reconnect);
-            server.on('connect', function(){
+            server.once('connect', function(){
                 view.hideConnect();
                 var uid = localModel.get('player.uid');
                 if (uid) {
                     server.emit('hello', uid);
                 }
             });
+            //server.once('disconnect', reconnect);
 
-            function reconnect(){
-                view.showConnect();
-                self.server = null;
-                self.connectServer();
-            }
+            Object.keys(server_events).forEach(function(topic){
+                server.on(topic, this[topic]);
+            }, server_events);
+
+            //function reconnect(){
+                //view.showConnect();
+                //self.server = null;
+                //self.connectServer();
+            //}
 
             return server;
         },
@@ -135,7 +157,24 @@ oz.def("bughunter", [
         },
 
         deliver: function(qid){
-            this.server.emit('deliver', qid);
+            net.ajax({
+                type: 'POST',
+                url: '/api/deliver',
+                data: { qid: qid }
+            });
+        },
+
+        showhand: function(qid, pos){
+            pos = pos || [];
+            net.ajax({
+                type: 'POST',
+                url: '/api/showhand',
+                data: { qid: qid, pos: pos.join(',') },
+                dataType: 'json',
+                success: function(json){
+                    view.showMyResult(qid, json);
+                }
+            });
         },
 
         closeDialog: function(){
@@ -143,11 +182,6 @@ oz.def("bughunter", [
         }
 
     };
-
-    function setStreamInfo(item){
-        item.sendDate = new Date().toString().match(/\d+:\d+:\d+/)[0];
-        item.order = quid++;
-    }
 
     return app;
 

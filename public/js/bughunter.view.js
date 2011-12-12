@@ -26,13 +26,41 @@ oz.def("bughunter::view", [
         ".library-btn": function(){
             view.showLibrary();
         },
-        ".explain-btn": function(){
-        
-        },
+        //".explain-btn": function(){
+            //bus.fire('showhand');
+        //},
         ".reset-btn": function(){
-        
-        }
+            view.alert("确定要清除所有答题记录和积分么？（不影响题库）", function(){
+                bus.fire('reset');
+            });
+        },
+        ".quiz-mask": function(e){
+            $(this).addClass('locked');
+            var qid = /#qid=(.+)/.exec(this.href)[1],
+                img = $(this).parent().find("img.pic")[0],
+                scale = img.naturalWidth / img.offsetWidth,
+                offset = $(this).offset();
+            bus.fire('showhand', [qid, [
+                (e.pageX - offset.left) * scale, 
+                (e.pageY - offset.top) * scale
+            ]]);
+        },
+        ".quiz-mask.locked": nothing,
+        ".quiz-locked": nothing
     };
+
+    function nothing(){}
+
+    function formatTime(time){
+        var tstr = [], time = time / 1000;
+        tstr.push(Math.floor(time / 60));
+        tstr.push(Math.floor(time % 60));
+        if (tstr[0] > 60) {
+            tstr.unshift(Math.floor(tstr[0] / 60));
+            tstr[1] = tstr[1] % 60;
+        }
+        return tstr.map(function(a){ return a.toString().length < 2 ? ('0' + a) : a; }).join(':');
+    }
 
     var view = {
 
@@ -111,6 +139,23 @@ oz.def("bughunter::view", [
             }, 400);
         },
 
+        showQuizResult: function(data){
+            var box = $('#stream-item-' + data.quiz._id),
+                mask = box.find('.quiz-mask'),
+                img = box.find('img.pic')[0],
+                quiz = data.quiz;
+            mask.addClass('locked');
+            data.scale = img.offsetWidth / img.naturalWidth;
+            data.quiz.winner_cost = formatTime(data.quiz.winner_cost);
+            mask.append(tpl.convertTpl('tplQuizResult', data));
+        },
+
+        showMyResult: function(qid, json){
+            var box = $('#stream-item-' + qid).find('.quiz-locked').html(
+                !json.r ? '抢答成功！' : (json.r == -1 && '抢答失败！你慢了半拍耶～' || '答错了！')
+            );
+        },
+
         updateHallSize: function(){
             scrollbar.init(this.wrapper.find(".aside")[0], {
                 fix: 10
@@ -142,12 +187,18 @@ oz.def("bughunter::view", [
         },
 
         renderStream: function(data){
+            var self = this;
             var box = this.wrapper.find(".main");
             var list = this.wrapper.find(".stream-list")[0].innerHTML = tpl.convertTpl("tplStream", { 
                 env: { pic_width: box[0].offsetWidth * 3/4 },
-                stream: data 
+                stream: data.stream 
             });
             box[0].scrollTop = list[0].offsetHeight + 100;
+            data.stream.forEach(function(item){
+                if (item.winner) {
+                    self.showQuizResult({ quiz: item, winner: this.hall[item.winner] });
+                }
+            }, data);
         },
 
         removePlayer: function(uid){
@@ -162,7 +213,7 @@ oz.def("bughunter::view", [
 
         renderBase: function(json){
             this.wrapper[0].innerHTML = tpl.convertTpl("tplBase", json);
-            this.renderStream(json.stream);
+            this.renderStream(json);
             this.updateHallSize();
             bus.fire("view:update");
         },

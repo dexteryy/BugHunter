@@ -381,6 +381,78 @@ html,body{
     background:#eee;
     padding:5px;
 }
+.stream-list li .quiz-pic{
+    position:relative;
+    display:inline-block;
+}
+.stream-list .quiz-mask{
+    display:block;
+    position:absolute;
+    top:0;left:0;
+    width:100%;
+    height:100%;
+    text-align:center;
+}
+.stream-list p.pic .quiz-mask .quiz-locked{
+    display:none;
+}
+.stream-list p.pic a.locked{
+    cursor:default;
+}
+.stream-list p.pic a.locked .quiz-locked{
+    display:block;
+    padding:0 10px;
+    width:100%;
+    height:40px;
+    line-height:40px;
+    background:#c00;
+    color:#fff;
+    font-size:16px;
+    opacity:0.9;
+    position:absolute;
+    top:20px;
+    left:-10px;
+    -moz-box-shadow:0 3px 6px #000;-webkit-box-shadow:0 3px 6px #000;box-shadow:0 3px 6px #000;
+    -moz-transition-property: top;
+    -moz-transition-duration: 0.4s;
+    -webkit-transition-property: top;
+    -webkit-transition-duration: 0.4s;
+}
+.stream-list p.pic a.locked:hover .quiz-locked{
+    top:-30px;
+}
+.stream-list .quiz-answer{
+    position:absolute;
+    border:2px solid #f00;
+}
+.stream-list .quiz-winner{
+    display:block;
+    position:absolute;
+    top:40px;
+    right:20px;
+    background:#fff;
+    border:1px solid #eee;
+    padding:5px;
+    text-align:left;
+    width:150px;
+    overflow:hidden;
+    -moz-box-shadow:0 3px 6px #000;-webkit-box-shadow:0 3px 6px #000;box-shadow:0 3px 6px #000;
+    -moz-transition-property: right;
+    -moz-transition-duration: 0.4s;
+    -webkit-transition-property: right;
+    -webkit-transition-duration: 0.4s;
+}
+.stream-list p.pic a.locked:hover .quiz-winner{
+    right:-160px;
+}
+.stream-list .quiz-winner img{
+    float:left;
+    margin:0 5px 0 0;
+}
+.stream-list .quiz-winner span{
+    display:block;
+    width:500px;
+}
 
 .connect-tips{
     width:200px;
@@ -392,7 +464,7 @@ html,body{
     border:1px solid #EBE9CB;
     text-align:center;
     position:absolute;
-    top:0;left:500px;
+    top:-32px;left:500px;
     -moz-box-shadow:0 0 6px #666;-webkit-box-shadow:0 0 6px #666;box-shadow:0 0 6px #666;
 }
 
@@ -432,6 +504,11 @@ html,body{
     width:70px;
     margin:0 10px 0 0;
 }
+.library-upload textarea{
+    width:320px;
+    padding:5px;
+    height:50px;
+}
 .library-upload .pic{
     text-align:center;
 }
@@ -467,6 +544,9 @@ html,body{
 }
 .library-list tr{
     border-bottom:1px dashed #333;
+}
+.library-list tr.used{
+    opacity:0.4;
 }
 .library-list td .lnk-flat{
     margin:10px 0!important;

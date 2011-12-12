@@ -25,7 +25,7 @@
 	</tfoot>
 	<tbody>
     <% list.forEach(function(quiz, i){ %>
-		<tr>
+		<tr <%=(quiz.release ? 'class="used"' : '')%> >
             <td><%=(i + 1)%></td>
 			<td>
                 <a href="/<%=quiz.pic%>" target="_blank" title="<%=escapeHTML(quiz.title)%>"><img src="/<%=quiz.pic%>" class="pic"></a>
@@ -34,7 +34,9 @@
 			<td><%=(quiz.punish || 0)%></td>
 			<td>
                 <a href="/library/quiz/<%=quiz._id%>" class="lnk-flat">编辑</a>
+                <% if (!quiz.release) { %>
                 <a href="#qid=<%=quiz._id%>" class="lnk-flat send-btn">发送</a>
+                <% } %>
             </td>
 		</tr>
     <% }); %>

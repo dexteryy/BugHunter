@@ -6,6 +6,7 @@ var mongo = require('mongoose');
 var formidable = require('formidable');
 var Quiz = require('./models/quiz');
 var Player = require('./models/player');
+var StreamLog = require('./models/streamlog');
 var _ = require('./lib/lang');
 var config = require('./config');
 var tpl = require('./lib/template');
@@ -24,33 +25,48 @@ var oa = new OAuth(
 );
 
 var playerHall = {};
-var streamLog = [];
 var clients_timeout = {};
-var clients_event = ['player:join', 'player:leave', 'quiz:begin', 'quiz:end'];
+var clients_event = ['player:join', 'player:leave', 'quiz:begin', 'quiz:end', 'app:reset'];
 var broadcast = new EventEmitter();
+
+var quid = 1;
+var streamLogs = [];
+var streamLogList;
+StreamLog.find({}, function(err, docs){
+    streamLogList = docs[0];
+    if (!streamLogList) {
+        streamLogList = new StreamLog({ log: [] });
+        streamLogList.save();
+    }
+    streamLogList.log.forEach(function(log){
+        //(log.type === 'Quiz' && Quiz || Talk)
+        Quiz.findById(log.iid, function(err, item){
+            streamLogs.push(item);
+            if (log.type === 'Quiz') {
+                quid++;
+            }
+        });
+    });
+});
 
 exports.socketServer = function(client) {
 
-    //console.info('connect', client.id)
     clients_event.forEach(function(topic){
         broadcast.on(topic, fn);
         client.once('disconnect', function() {
             broadcast.removeListener(topic, fn);
         });
         function fn(data){
-            //console.info('send to client', client.id)
             client.emit(topic, data);
         }
     });
 
     client.once('hello', function(uid) {
-        //console.info('hello', client.id, uid)
         if (clients_timeout[uid]) {
             clearTimeout(clients_timeout[uid]);
         }
         (playerHall[uid] || {}).socket_id = client.id;
         client.once('disconnect', function() {
-            //console.info('disconnect', client.id, uid)
             clients_timeout[uid] = setTimeout(function(){
                 Object.keys(playerHall).forEach(function(uid){
                     if (this[uid].socket_id == client.id) {
@@ -58,16 +74,7 @@ exports.socketServer = function(client) {
                     }
                 }, playerHall);
                 delete clients_timeout[uid];
-                //console.info('offline', client.id, uid)
             }, 5000);
-            client.removeAllListeners('deliver');
-        });
-    });
-
-    client.on('deliver', function(uid) {
-        Quiz.findById(uid, function(err, quiz){
-            broadcast.emit('quiz:begin', quiz);
-            streamLog.push(quiz);
         });
     });
 
@@ -90,7 +97,7 @@ exports.routes = {
             var json = {
                 player: player,
                 hall: playerHall,
-                stream: streamLog
+                stream: streamLogs
             };
             res.setHeader('Content-Type', 'application/json; charset=utf-8');
             res.end(JSON.stringify(json));
@@ -106,10 +113,93 @@ exports.routes = {
         }
     },
 
+    '/api/reset': {
+        type: 'post',
+        handler: function(req, res, next){
+            if (!isAdmin(req.session.uid)) {
+                return show403(res);
+            }
+            streamLogs.length = 0;
+            quid = 1;
+            exports.saveStream(function(){
+                Quiz.update({}, {
+                    '$set': { 
+                        release: null, 
+                        winner: 0,
+                        winner_cost: 0,
+                        num: 0
+                    }
+                }, { multi: true }, function(err, quiz){
+                    replaceStreamLog();
+                    var json = {
+                        player: new Player(req.session),
+                        hall: playerHall,
+                        stream: streamLogs
+                    };
+                    broadcast.emit('app:reset', json);
+                });
+            });
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end('');
+        }
+    },
+
+    '/api/deliver': {
+        type: 'post',
+        handler: function(req, res, next){
+            if (!isAdmin(req.session.uid)) {
+                return show403(res);
+            }
+            Quiz.findById(req.body.qid, function(err, quiz){
+                quiz.release = new Date();
+                quiz.num = quid++;
+                quiz.save();
+                broadcast.emit('quiz:begin', quiz);
+                streamLogs.push(quiz);
+            });
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.end('');
+        }
+    },
+
+    '/api/showhand': {
+        type: 'post',
+        handler: function(req, res, next){
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            var result = { r: 0, msg: '' };
+            var qid = req.body.qid;
+            var pos = req.body.pos.split(',');
+            Quiz.findById(qid, isAdmin(req.session.uid) ? win : check);
+            function check(err, quiz){
+                if (checkQuizAnswer(quiz, pos)) {
+                    if (parseInt(quiz.winner)) {
+                        lose(-2);
+                    } else {
+                        win(err, quiz);
+                    }
+                } else {
+                    lose(-1);
+                }
+            }
+            function win(err, quiz){
+                quiz.winner = req.session.uid;
+                quiz.winner_cost = Date.now() - quiz.release.getTime();
+                quiz.save();
+                replaceStreamLog(quiz);
+                broadcast.emit('quiz:end', quiz);
+                res.end(JSON.stringify(result));
+            }
+            function lose(r){
+                result.r = r;
+                res.end(JSON.stringify(result));
+            }
+        }
+    },
+
     '/library/list': {
         handler: function(req, res, next){
             if (!isAdmin(req.session.uid)) {
-                show403(res);
+                return show403(res);
             }
             res.setHeader('Content-Type', 'text/html');
             Quiz.find({}, function(err, docs){
@@ -121,7 +211,7 @@ exports.routes = {
     '/library/quiz/:qid': {
         handler: function(req, res, next){
             if (!isAdmin(req.session.uid)) {
-                show403(res);
+                return show403(res);
             }
             res.setHeader('Content-Type', 'text/html');
             if (req.params.qid === 'create') {
@@ -142,7 +232,7 @@ exports.routes = {
         type: 'post',
         handler: function(req, res, next){
             if (!isAdmin(req.session.uid)) {
-                show403(res);
+                return show403(res);
             }
             var form = new formidable.IncomingForm();
             var quiz = {};
@@ -258,6 +348,21 @@ exports.routes = {
 
 };
 
+exports.saveStream = function(cb){
+    StreamLog.update({}, { $pull: { log: {} } }, function(){
+        StreamLog.update({}, { 
+            $pushAll: { 
+                log: streamLogs.map(function(item){
+                    return { 
+                        iid: item._id, 
+                        type: item.score ? 'Quiz' : 'Talk' 
+                    };
+                })
+            }
+        }, cb);
+    });
+};
+
 function checkNewPlayer(player){
     if (player.uid && !playerHall[player.uid]) {
         playerHall[player.uid] = player;
@@ -273,6 +378,25 @@ function leaveHall(uid){
 
 function isAdmin(uid){
     return uid && config.admins.indexOf(uid.toString()) !== -1;
+}
+
+function checkQuizAnswer(quiz, pos){
+    return pos[0] && pos[0] > quiz.x && pos[0] < quiz.x + quiz.w 
+        && pos[1] && pos[1] > quiz.y && pos[1] < quiz.y + quiz.h;
+}
+
+function replaceStreamLog(quiz){
+    if (quiz) {
+        streamLogs.forEach(function(q, i){
+            if (q._id == this._id) {
+                streamLogs.splice(i, 1, this);
+            }
+        }, quiz);
+    } else {
+        Quiz.find({}, function(err, docs){
+            streamLogs = docs;
+        });
+    }
 }
 
 function show403(res){

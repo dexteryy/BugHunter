@@ -58,7 +58,6 @@
 <% if (player.isAdmin) { %>
 <div class="admin">
     <span class="bn-flat"><input type="button" value="管理题库" class="library-btn"></span>
-    <span class="bn-flat"><input type="button" value="显示答案" class="explain-btn"></span>
     <span class="bn-flat"><input type="button" value="清空记录" class="reset-btn"></span>
 </div>
 <% } %>
@@ -88,17 +87,30 @@
 
 <script type="text/template" id="tplStreamItem">
 <li id="stream-item-<%=item._id%>">
-    <p class="hd">第<%=item.order%>题：<%=item.title%></p>
+    <p class="hd">第<%=item.num%>题：<%=item.title%></p>
     <p class="meta">
         <span class="score">答对得分：<%=item.score%></span>
         <span class="punish">答错扣分：<%=(item.punish || 0)%></span>
-        <span class="date"><%=item.sendDate%></span>
+        <span class="date"><%=item.release%></span>
     </p>
     <p class="pic">
-        <img src="/<%=item.pic%>" class="pic" style="max-width:<%=(env.pic_width + 'px' || '')%>;"></a>
-        <a href="#" class="quiz-mask"></a>
+        <span class="quiz-pic">
+            <img src="/<%=item.pic%>" class="pic" style="max-width:<%=(env.pic_width + 'px' || '')%>;"></a>
+            <a href="#qid=<%=item._id%>" class="quiz-mask"><span class="quiz-locked">已锁定</span></a>
+        </span>
     </p>
 </li>
+</script>
+
+<script type="text/template" id="tplQuizResult">
+<span class="quiz-answer" style="width:<%=(quiz.w * scale)%>px;height:<%=(quiz.h * scale)%>px;left:<%=(quiz.x * scale + 5)%>px;top:<%=(quiz.y * scale + 5)%>px;"></span>
+<span class="quiz-winner">
+    <a href="http://www.douban.com/people/<%=winner.usr%>" target="_blank">
+        <img src="<%=winner.avatar%>" class="avatar" />
+    </a>
+    <span class="nick">胜者：<%=winner.nic%></span>
+    <span class="cost">用时：<%=quiz.winner_cost%></span>
+</span>
 </script>
 
 <script src="/app/js/lib/oz.js"></script>
@@ -110,6 +122,7 @@ oz.def("socket.io-src", "/app/js/lib/socket.io/socket.io.js");
 oz.def("socket.io", "/app/js/lib/socket.io.js");
 oz.def("lang", "/app/js/mod/lang.js");
 oz.def("browsers", "/app/js/mod/browsers.js");
+oz.def("key", "/app/js/mod/key.js");
 oz.def("event", "/app/js/mod/event.js");
 oz.def("localmodel", "/app/js/mod/localmodel.js");
 oz.def("network", "/app/js/mod/network.js");

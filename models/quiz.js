@@ -4,6 +4,10 @@ var Schema = mongo.Schema;
 var QuizSchema = new Schema({
     //qid: Schema.ObjectId,
     title: { type: String, default: '' },
+    winner: Number,
+    winner_cost: Number,
+    release: Date,
+    num: Number,
     score: { type: Number, min: 0, required: true },
     punish: { type: Number, default: 0, max: 0 },
     pic: { type: String, required: true },
