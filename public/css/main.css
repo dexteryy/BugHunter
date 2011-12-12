@@ -419,13 +419,13 @@ html,body{
     -webkit-transition-duration: 0.4s;
 }
 .stream-list p.pic a.locked:hover .quiz-locked{
-    top:-30px;
+    top:-40px;
 }
 .stream-list .quiz-answer{
     position:absolute;
     border:2px solid #f00;
 }
-.stream-list .quiz-winner{
+.stream-list span.quiz-winner{
     display:block;
     position:absolute;
     top:40px;
@@ -436,22 +436,23 @@ html,body{
     text-align:left;
     width:150px;
     overflow:hidden;
-    -moz-box-shadow:0 3px 6px #000;-webkit-box-shadow:0 3px 6px #000;box-shadow:0 3px 6px #000;
+    -moz-box-shadow:0 0px 6px #000;-webkit-box-shadow:0 0px 6px #000;box-shadow:0 0px 6px #000;
     -moz-transition-property: right;
     -moz-transition-duration: 0.4s;
     -webkit-transition-property: right;
     -webkit-transition-duration: 0.4s;
 }
-.stream-list p.pic a.locked:hover .quiz-winner{
+.stream-list p.pic a.locked:hover span.quiz-winner{
     right:-160px;
 }
-.stream-list .quiz-winner img{
+.stream-list span.quiz-winner img{
     float:left;
     margin:0 5px 0 0;
 }
-.stream-list .quiz-winner span{
+.stream-list span.quiz-winner em{
     display:block;
     width:500px;
+    color:#333;
 }
 
 .connect-tips{

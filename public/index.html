@@ -105,11 +105,9 @@
 <script type="text/template" id="tplQuizResult">
 <span class="quiz-answer" style="width:<%=(quiz.w * scale)%>px;height:<%=(quiz.h * scale)%>px;left:<%=(quiz.x * scale + 5)%>px;top:<%=(quiz.y * scale + 5)%>px;"></span>
 <span class="quiz-winner">
-    <a href="http://www.douban.com/people/<%=winner.usr%>" target="_blank">
-        <img src="<%=winner.avatar%>" class="avatar" />
-    </a>
-    <span class="nick">胜者：<%=winner.nic%></span>
-    <span class="cost">用时：<%=quiz.winner_cost%></span>
+    <img src="<%=winner.avatar%>" class="quiz-winner" />
+    <em class="quiz-winner">胜者：<%=winner.nic%></em>
+    <em class="quiz-winner">用时：<%=quiz.winner_cost%></em>
 </span>
 </script>
 

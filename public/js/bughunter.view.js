@@ -46,7 +46,9 @@ oz.def("bughunter::view", [
             ]]);
         },
         ".quiz-mask.locked": nothing,
-        ".quiz-locked": nothing
+        ".quiz-locked": nothing,
+        ".quiz-winner": nothing,
+        ".quiz-answer": nothing
     };
 
     function nothing(){}
@@ -152,7 +154,7 @@ oz.def("bughunter::view", [
 
         showMyResult: function(qid, json){
             var box = $('#stream-item-' + qid).find('.quiz-locked').html(
-                !json.r ? '抢答成功！' : (json.r == -1 && '抢答失败！你慢了半拍耶～' || '答错了！')
+                !json.r ? '抢答成功！' : (json.r == -2 && '抢答失败！你慢了半拍耶～' || '答错了！')
             );
         },
 

@@ -130,7 +130,6 @@ exports.routes = {
                         num: 0
                     }
                 }, { multi: true }, function(err, quiz){
-                    replaceStreamLog();
                     var json = {
                         player: new Player(req.session),
                         hall: playerHall,
@@ -386,16 +385,14 @@ function checkQuizAnswer(quiz, pos){
 }
 
 function replaceStreamLog(quiz){
-    if (quiz) {
-        streamLogs.forEach(function(q, i){
-            if (q._id == this._id) {
-                streamLogs.splice(i, 1, this);
-            }
-        }, quiz);
-    } else {
-        Quiz.find({}, function(err, docs){
-            streamLogs = docs;
-        });
+    var n;
+    streamLogs.forEach(function(q, i){
+        if (q._id.toString() == this._id.toString()) {
+            n = i;
+        }
+    }, quiz);
+    if (typeof n !== 'undefined') {
+        streamLogs.splice(n, 1, quiz);
     }
 }
 
