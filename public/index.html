@@ -105,8 +105,8 @@
 <script type="text/template" id="tplQuizResult">
 <span class="quiz-answer" style="width:<%=(quiz.w * scale)%>px;height:<%=(quiz.h * scale)%>px;left:<%=(quiz.x * scale + 5)%>px;top:<%=(quiz.y * scale + 5)%>px;"></span>
 <span class="quiz-winner">
-    <img src="<%=winner.avatar%>" class="quiz-winner" />
-    <em class="quiz-winner">胜者：<%=winner.nic%></em>
+    <img src="<%=quiz.winner_avatar%>" class="quiz-winner" />
+    <em class="quiz-winner">胜者：<%=quiz.winner_nic%></em>
     <em class="quiz-winner">用时：<%=quiz.winner_cost%></em>
 </span>
 </script>

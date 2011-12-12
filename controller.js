@@ -124,9 +124,12 @@ exports.routes = {
             exports.saveStream(function(){
                 Quiz.update({}, {
                     '$set': { 
-                        release: null, 
                         winner: 0,
+                        winner_avatar: '',
+                        winner_usr: '',
+                        winner_nic: '',
                         winner_cost: 0,
+                        release: null, 
                         num: 0
                     }
                 }, { multi: true }, function(err, quiz){
@@ -182,6 +185,9 @@ exports.routes = {
             }
             function win(err, quiz){
                 quiz.winner = req.session.uid;
+                quiz.winner_avatar = req.session.avatar;
+                quiz.winner_usr = req.session.usr;
+                quiz.winner_nic = req.session.nic;
                 quiz.winner_cost = Date.now() - quiz.release.getTime();
                 quiz.save();
                 replaceStreamLog(quiz);

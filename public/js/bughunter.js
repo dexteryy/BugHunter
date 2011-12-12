@@ -85,10 +85,7 @@ oz.def("bughunter", [
         },
 
         'quiz:end': function (quiz) {
-            view.showQuizResult({
-                quiz: quiz,
-                winner: localModel.get('hall.' + quiz.winner)
-            });
+            view.showQuizResult(quiz);
         },
 
         'app:reset': function (data) {

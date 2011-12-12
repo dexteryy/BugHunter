@@ -54,7 +54,8 @@ oz.def("bughunter::view", [
     function nothing(){}
 
     function formatTime(time){
-        var tstr = [], time = time / 1000;
+        var tstr = [];
+        time = time / 1000;
         tstr.push(Math.floor(time / 60));
         tstr.push(Math.floor(time % 60));
         if (tstr[0] > 60) {
@@ -141,15 +142,16 @@ oz.def("bughunter::view", [
             }, 400);
         },
 
-        showQuizResult: function(data){
-            var box = $('#stream-item-' + data.quiz._id),
+        showQuizResult: function(quiz){
+            var box = $('#stream-item-' + quiz._id),
                 mask = box.find('.quiz-mask'),
-                img = box.find('img.pic')[0],
-                quiz = data.quiz;
+                img = box.find('img.pic')[0];
             mask.addClass('locked');
-            data.scale = img.offsetWidth / img.naturalWidth;
-            data.quiz.winner_cost = formatTime(data.quiz.winner_cost);
-            mask.append(tpl.convertTpl('tplQuizResult', data));
+            quiz.winner_cost = formatTime(quiz.winner_cost);
+            mask.append(tpl.convertTpl('tplQuizResult', { 
+                quiz: quiz,  
+                scale: img.offsetWidth / img.naturalWidth
+            }));
         },
 
         showMyResult: function(qid, json){
@@ -188,19 +190,18 @@ oz.def("bughunter::view", [
             box[0].scrollTop = list[0].offsetHeight + 100;
         },
 
-        renderStream: function(data){
-            var self = this;
+        renderStream: function(stream){
             var box = this.wrapper.find(".main");
             var list = this.wrapper.find(".stream-list")[0].innerHTML = tpl.convertTpl("tplStream", { 
                 env: { pic_width: box[0].offsetWidth * 3/4 },
-                stream: data.stream 
+                stream: stream 
             });
             box[0].scrollTop = list[0].offsetHeight + 100;
-            data.stream.forEach(function(item){
+            stream.forEach(function(item){
                 if (item.winner) {
-                    self.showQuizResult({ quiz: item, winner: this.hall[item.winner] });
+                    this.showQuizResult(item);
                 }
-            }, data);
+            }, this);
         },
 
         removePlayer: function(uid){
@@ -215,7 +216,7 @@ oz.def("bughunter::view", [
 
         renderBase: function(json){
             this.wrapper[0].innerHTML = tpl.convertTpl("tplBase", json);
-            this.renderStream(json);
+            this.renderStream(json.stream);
             this.updateHallSize();
             bus.fire("view:update");
         },
