@@ -3,9 +3,8 @@
 <title>.</title>
 <p>授权成功...稍等...</p>
 <script>
-parent.parent.oz.require(['bughunter'], function(app){
-    app.updatePlayer().then(function(){
-        app.closeDialog();
-    });
+parent.parent.oz.require(['bughunter', 'bughunter::bus'], function(app, bus){
+    bus.fire('login');
+    app.closeDialog();
 });
 </script>

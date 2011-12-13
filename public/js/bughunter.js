@@ -53,9 +53,17 @@ oz.def("bughunter", [
         view.addToStream(data);
     });
 
+    bus.bind("login", function(){
+        view.showLoading();
+        net.getJSON(API_INFO, {}, function(json){
+            localModel.set("player", json.player);
+            view.hideLoading();
+        });
+    });
+
     bus.bind("logout", function(){
         net.getJSON(API_LOGOUT, {}, function(){
-            app.updatePlayer();
+            localModel.set("player", {});
         });
     });
 
@@ -86,10 +94,15 @@ oz.def("bughunter", [
 
         'quiz:end': function (quiz) {
             view.showQuizResult(quiz);
+            app.updatePlayers();
         },
 
         'app:reset': function (data) {
-            localModel.set(data);
+            view.showLoading();
+            net.getJSON(API_BASE, {}, function(json){
+                localModel.set(json);
+                view.hideLoading();
+            });
         }
 
     };
@@ -100,9 +113,11 @@ oz.def("bughunter", [
             var self = this;
 
             view.init(opt);
+            view.showLoading();
 
             net.getJSON(API_BASE, {}, function(json){
                 localModel.set(json);
+                view.hideLoading();
                 if (!json.player.uid) {
                     view.showLogin();
                 }
@@ -146,11 +161,11 @@ oz.def("bughunter", [
             return server;
         },
 
-        updatePlayer: function(){
+        updatePlayers: function(){
             net.getJSON(API_INFO, {}, function(json){
-                localModel.set("player", json);
+                localModel.set("player", json.player);
+                localModel.set("hall", json.hall);
             });
-            return bus.promise("view.player:update");
         },
 
         deliver: function(qid){

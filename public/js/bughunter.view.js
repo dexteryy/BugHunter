@@ -21,14 +21,11 @@ oz.def("bughunter::view", [
             view.showLogin();
         },
         ".rank-btn": function(){
-        
+            view.showRank();
         },
         ".library-btn": function(){
             view.showLibrary();
         },
-        //".explain-btn": function(){
-            //bus.fire('showhand');
-        //},
         ".reset-btn": function(){
             view.alert("确定要清除所有答题记录和积分么？（不影响题库）", function(){
                 bus.fire('reset');
@@ -65,11 +62,13 @@ oz.def("bughunter::view", [
         return tstr.map(function(a){ return a.toString().length < 2 ? ('0' + a) : a; }).join(':');
     }
 
+    var _loading_timer = 0;
+
     var view = {
 
         init: function(opt){
-
             this.wrapper = opt.wrapper;
+            this.loading = opt.loading;
             this.dialog = Dialog({
                 titile: "",
                 content: "",
@@ -86,7 +85,22 @@ oz.def("bughunter::view", [
                 easing: easingLib,
                 fps: 60
             }).run();
+        },
 
+        showLoading: function(){
+            this.loading.show();
+            _loading_timer = +new Date();
+        },
+
+        hideLoading: function(){
+            if (+new Date() - _loading_timer < 500) {
+                var self = this;
+                setTimeout(function(){
+                    self.hideLoading();
+                }, 100);
+            } else {
+                this.loading.hide();
+            }
         },
 
         alert: function(msg, cb){
@@ -130,6 +144,15 @@ oz.def("bughunter::view", [
             }).open();
         },
 
+        showRank: function(){
+            this.dialog.set({
+                title: "排行榜",
+                iframeURL: '/library/rank', 
+                width: 600,
+                buttons: []
+            }).open();
+        },
+
         showConnect: function(){
             this.wrapper.find(".connect-tips").animate({
                 top: 0
@@ -156,7 +179,9 @@ oz.def("bughunter::view", [
 
         showMyResult: function(qid, json){
             var box = $('#stream-item-' + qid).find('.quiz-locked').html(
-                !json.r ? '抢答成功！' : (json.r == -2 && '抢答失败！你慢了半拍耶～' || '答错了！')
+                !json.r ? '抢答成功！' : (json.r == -2 && '抢答失败！你慢了半拍耶～' 
+                                            || json.r == -3 && '登陆之后才能参加！'
+                                            || '答错了！')
             );
         },
 

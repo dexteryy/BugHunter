@@ -146,14 +146,36 @@ html,body{
     height:100%;
     overflow:hidden;
 }
-.wrapper,
-.loading{
+.wrapper{
     width:100%;
     height:100%;
 }
 .loading{
+    z-index:6000;
+}
+.loading,
+.loading .bg{
     position:absolute;
     left:0;top:0;
+    width:100%;
+    height:100%;
+}
+.loading .bg{
+    background:#000;
+    opacity:0.4;
+}
+.loading p{
+    position:relative;
+    width:200px;
+    height:50px;
+    line-height:50px;
+    font-size:16px;
+    padding:0 0 0 140px;
+    background:#E9F5E9 url(../pics/loading.gif) no-repeat 100px center;
+    text-align:left;
+    margin:100px auto;
+    box-shadow:1px 6px 36px rgba(0, 0, 0, 0.5);-moz-box-shadow:1px 6px 36px rgba(0, 0, 0, 0.5);-webkit-box-shadow:1px 6px 36px rgba(0, 0, 0, 0.5); 
+    -moz-border-radius: 2px; -webkit-border-radius: 2px;border-radius: 2px;
 }
 
 .dashboard{
@@ -395,6 +417,7 @@ html,body{
 }
 .stream-list p.pic .quiz-mask .quiz-locked{
     display:none;
+    z-index:3;
 }
 .stream-list p.pic a.locked{
     cursor:default;
@@ -424,6 +447,7 @@ html,body{
 .stream-list .quiz-answer{
     position:absolute;
     border:2px solid #f00;
+    z-index:1;
 }
 .stream-list span.quiz-winner{
     display:block;
@@ -436,6 +460,7 @@ html,body{
     text-align:left;
     width:150px;
     overflow:hidden;
+    z-index:5;
     -moz-box-shadow:0 0px 6px #000;-webkit-box-shadow:0 0px 6px #000;box-shadow:0 0px 6px #000;
     -moz-transition-property: right;
     -moz-transition-duration: 0.4s;
@@ -532,12 +557,12 @@ html,body{
     right:0;
 }
 
+.library-list table{
+    width:100%;
+}
 .library-list .pic{
     width:300px;
     text-align:center;
-}
-.library-list table{
-    width:100%;
 }
 .library-list th,
 .library-list td{
@@ -551,4 +576,21 @@ html,body{
 }
 .library-list td .lnk-flat{
     margin:10px 0!important;
+}
+
+.library-rank .avatar{
+    width:50px;
+}
+.library-rank .rank{
+    font-size:18px;
+}
+.library-rank .score{
+    font-size:22px;
+    font-weight:bold;
+}
+.library-rank .score strong{
+    color:#090;
+}
+.library-rank .score em{
+    color:#f00;
 }

@@ -12,7 +12,7 @@
 </head>
 <body>
 <div class="wrapper"></div>
-<!--<div class="loading"></div>-->
+<div class="loading"><div class="bg"></div><p>Loading...</p></div>
 
 <script type="text/template" id="tplBase">
 <div class="dashboard">
@@ -34,18 +34,20 @@
 
 <script type="text/template" id="tplPlayer">
 <div class="me">
+    <% if (player.avatar) { %>
     <a href="http://www.douban.com/people/<%=player.usr%>"><img src="<%=player.avatar%>" class="avatar" /></a>
+    <% } %>
     <span class="nick"><%=(player.nic || "未登陆用户")%></span>
 </div>
 <div class="status">
-    <input type="text" value="<%=(player.uid ? '0' : '-')%>" class="score" readonly="readonly"/>
+    <input type="text" value="<%=player.score%>" class="score" readonly="readonly"/>
     <label>SCORE</label>
-    <input type="text" value="<%=(player.uid ? '0' : '-')%>" class="score" readonly="readonly"/>
+    <input type="text" value="<%=player.round%>" class="score" readonly="readonly"/>
     <label>ROUND</label>
-    <strong><input type="text" value="<%=(player.uid ? '0' : '-')%>" class="score" readonly="readonly" /></strong>
-    <label>CORRECT</label>
-    <em><input type="text" value="<%=(player.uid ? '0' : '-')%>" class="score" readonly="readonly" /></em>
-    <label>MISTAKE</label>
+    <strong><input type="text" value="<%=player.correct%>" class="score" readonly="readonly" /></strong>
+    <label>WIN</label>
+    <em><input type="text" value="<%=player.mistake%>" class="score" readonly="readonly" /></em>
+    <label>FAULT</label>
 </div>
 <div class="opt">
 <% if (player.uid) { %>
@@ -137,7 +139,8 @@ oz.def("bughunter::view", "/app/js/bughunter.view.js");
 oz.def("bughunter", "/app/js/bughunter.js");
 oz.require(["jquery", "bughunter", "domready"], function($, app){
     app.setup({
-        wrapper: $(".wrapper").eq(0)
+        wrapper: $(".wrapper").eq(0),
+        loading: $(".loading").eq(0)
     });
 });
 </script>

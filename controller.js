@@ -35,7 +35,7 @@ var streamLogList;
 StreamLog.find({}, function(err, docs){
     streamLogList = docs[0];
     if (!streamLogList) {
-        streamLogList = new StreamLog({ log: [] });
+        streamLogList = new StreamLog({ log: [], round: 0 });
         streamLogList.save();
     }
     streamLogList.log.forEach(function(log){
@@ -92,10 +92,8 @@ exports.routes = {
 
     '/api/base': {
         handler: function(req, res, next){
-            var player = new Player(req.session);
-            checkNewPlayer(player);
             var json = {
-                player: player,
+                player: checkPlayer(req.session),
                 hall: playerHall,
                 stream: streamLogs
             };
@@ -106,10 +104,11 @@ exports.routes = {
 
     '/api/info': {
         handler: function(req, res, next){
-            var player = new Player(req.session);
-            checkNewPlayer(player);
             res.setHeader('Content-Type', 'application/json; charset=utf-8');
-            res.end(JSON.stringify(player));
+            res.end(JSON.stringify({
+                player: checkPlayer(req.session),
+                hall: playerHall
+            }));
         }
     },
 
@@ -121,6 +120,12 @@ exports.routes = {
             }
             streamLogs.length = 0;
             quid = 1;
+            streamLogList.round = 0;
+            Object.keys(playerHall).forEach(function(uid){
+                this[uid].score = 0;
+                this[uid].correct = 0;
+                this[uid].mistake = 0;
+            }, playerHall);
             exports.saveStream(function(){
                 Quiz.update({}, {
                     '$set': { 
@@ -133,12 +138,7 @@ exports.routes = {
                         num: 0
                     }
                 }, { multi: true }, function(err, quiz){
-                    var json = {
-                        player: new Player(req.session),
-                        hall: playerHall,
-                        stream: streamLogs
-                    };
-                    broadcast.emit('app:reset', json);
+                    broadcast.emit('app:reset');
                 });
             });
             res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -158,6 +158,7 @@ exports.routes = {
                 quiz.save();
                 broadcast.emit('quiz:begin', quiz);
                 streamLogs.push(quiz);
+                streamLogList.round++;
             });
             res.setHeader('Content-Type', 'application/json; charset=utf-8');
             res.end('');
@@ -169,32 +170,45 @@ exports.routes = {
         handler: function(req, res, next){
             res.setHeader('Content-Type', 'application/json; charset=utf-8');
             var result = { r: 0, msg: '' };
+            var player = playerHall[req.session.uid];
+            if (!req.session.uid || !player) {
+                result.r = -3;
+                res.end(JSON.stringify(result));
+            }
             var qid = req.body.qid;
             var pos = req.body.pos.split(',');
             Quiz.findById(qid, isAdmin(req.session.uid) ? win : check);
             function check(err, quiz){
                 if (checkQuizAnswer(quiz, pos)) {
                     if (parseInt(quiz.winner)) {
-                        lose(-2);
+                        lose(-2, quiz);
                     } else {
                         win(err, quiz);
                     }
                 } else {
-                    lose(-1);
+                    lose(-1, quiz);
                 }
             }
             function win(err, quiz){
-                quiz.winner = req.session.uid;
-                quiz.winner_avatar = req.session.avatar;
-                quiz.winner_usr = req.session.usr;
-                quiz.winner_nic = req.session.nic;
+                quiz.winner = player.uid;
+                quiz.winner_avatar = player.avatar;
+                quiz.winner_usr = player.usr;
+                quiz.winner_nic = player.nic;
                 quiz.winner_cost = Date.now() - quiz.release.getTime();
                 quiz.save();
                 replaceStreamLog(quiz);
+                player.score += quiz.score;
+                player.correct++;
                 broadcast.emit('quiz:end', quiz);
                 res.end(JSON.stringify(result));
             }
-            function lose(r){
+            function lose(r, quiz){
+                if (r == -1) {
+                    if (quiz.punish) {
+                        player.score += quiz.punish;
+                    }
+                    player.mistake++;
+                }
                 result.r = r;
                 res.end(JSON.stringify(result));
             }
@@ -210,6 +224,18 @@ exports.routes = {
             Quiz.find({}, function(err, docs){
                 res.end(tpl.convertTpl('templates/library.tpl', { list: docs }));
             });
+        }
+    },
+
+    '/library/rank': {
+        handler: function(req, res, next){
+            res.setHeader('Content-Type', 'text/html');
+            var list = Object.keys(playerHall).map(function(uid){
+                return this[uid];
+            }, playerHall).sort(function(p1, p2){
+                return p1.score < p2.score;
+            });
+            res.end(tpl.convertTpl('templates/rank.tpl', { list: list }));
         }
     },
 
@@ -354,6 +380,7 @@ exports.routes = {
 };
 
 exports.saveStream = function(cb){
+    streamLogList.save();
     StreamLog.update({}, { $pull: { log: {} } }, function(){
         StreamLog.update({}, { 
             $pushAll: { 
@@ -368,11 +395,20 @@ exports.saveStream = function(cb){
     });
 };
 
-function checkNewPlayer(player){
-    if (player.uid && !playerHall[player.uid]) {
-        playerHall[player.uid] = player;
-        broadcast.emit('player:join', player);
+function checkPlayer(session){
+    var player = playerHall[session.uid];
+    if (session.uid) {
+        if (!player) {
+            player = new Player(session);
+            playerHall[player.uid] = player;
+            broadcast.emit('player:join', player);
+        }
+        session.round = player.round = streamLogList.round;
+        session.score = player.score;
+        session.correct = player.correct;
+        session.mistake = player.mistake;
     }
+    return player || {};
 }
 
 function leaveHall(uid){

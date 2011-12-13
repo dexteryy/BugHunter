@@ -5,8 +5,9 @@ var PlayerSchema = new Schema({
     uid: Number,
     usr: String,
     nic: String,
-    avatar: { type: String, default: 'http://img3.douban.com/icon/user_large.jpg' },
+    avatar: String,
     isAdmin: { type: Boolean, default: false },
+    round: { type: Number, default: 0 },
     score: { type: Number, default: 0 },
     correct: { type: Number, default: 0 },
     mistake: { type: Number, default: 0 }
