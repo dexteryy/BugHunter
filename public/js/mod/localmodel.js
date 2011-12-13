@@ -1,4 +1,8 @@
-
+/**
+ * @import lib/oz.js
+ * @import mod/lang.js
+ * @import mod/event.js
+ */
 define("localmodel", [
     "lang",
     "event"

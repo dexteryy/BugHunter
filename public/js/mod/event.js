@@ -156,6 +156,9 @@ define("event", ["lang"], function(_){
     };
 
     actors.wait = actors.then;
+    actors.on = actors.bind;
+    actors.removeListener = actors.unbind;
+    actors.emit = actors.fire;
 
     function when(n){
         var mutiArgs = [],

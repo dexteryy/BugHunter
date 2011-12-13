@@ -168,7 +168,7 @@ function require(deps, block, handler) {
 }
 
 /**
- * @public Wrappings style API
+ * @experiment Wrappings style API
  * @param {function}
  */ 
 function declare(block){
@@ -343,6 +343,7 @@ function scan(m, list){
 }
 
 /**
+ * @experiment 
  * @private analyse module code 
  *          to find out dependencies which have no explicit declaration
  * @param {object} module object

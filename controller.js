@@ -1,6 +1,6 @@
 
 var http = require('http');
-var EventEmitter = require('events').EventEmitter;
+var Event = require('./lib/event.js');
 var OAuth= require('oauth').OAuth;
 var mongo = require('mongoose');
 var formidable = require('formidable');
@@ -27,7 +27,7 @@ var oa = new OAuth(
 var playerHall = {};
 var clients_timeout = {};
 var clients_event = ['player:join', 'player:leave', 'quiz:begin', 'quiz:end', 'app:reset'];
-var broadcast = new EventEmitter();
+var broadcast = Event();
 
 var quid = 1;
 var streamLogs = [];
@@ -156,7 +156,7 @@ exports.routes = {
                 quiz.release = new Date();
                 quiz.num = quid++;
                 quiz.save();
-                broadcast.emit('quiz:begin', quiz);
+                broadcast.emit('quiz:begin', [quiz]);
                 streamLogs.push(quiz);
                 streamLogList.round++;
             });
@@ -199,7 +199,7 @@ exports.routes = {
                 replaceStreamLog(quiz);
                 player.score = (player.score || 0) + quiz.score;
                 player.correct++;
-                broadcast.emit('quiz:end', quiz);
+                broadcast.emit('quiz:end', [quiz]);
                 res.end(JSON.stringify(result));
             }
             function lose(r, quiz){
@@ -230,22 +230,28 @@ exports.routes = {
     '/library/rank': {
         handler: function(req, res, next){
             res.setHeader('Content-Type', 'text/html');
-            var db = require('mongoskin').db(config.db_url);
-            db.collection("sessions").find().toArray(function(err, sessions){
-                var players = {};
-                sessions.forEach(function(doc){
-                    var session = JSON.parse(doc.session);
-                    if (session.uid) {
-                        this[session.uid] = session;
-                    }
-                }, players);
-                var list = Object.keys(players).map(function(uid){
-                    return this[uid]
-                }, players).sort(function(p1, p2){
-                    return p2.score - p1.score;
-                });
-                res.end(tpl.convertTpl('templates/rank.tpl', { list: list }));
+            //var db = require('mongoskin').db(config.db_url);
+            //db.collection("sessions").find().toArray(function(err, sessions){
+                //var players = {};
+                //sessions.forEach(function(doc){
+                    //var session = JSON.parse(doc.session);
+                    //if (session.uid) {
+                        //this[session.uid] = session;
+                    //}
+                //}, players);
+                //var list = Object.keys(players).map(function(uid){
+                    //return this[uid]
+                //}, players).sort(function(p1, p2){
+                    //return p2.score - p1.score;
+                //});
+                //res.end(tpl.convertTpl('templates/rank.tpl', { list: list }));
+            //});
+            var list = Object.keys(playerHall).map(function(uid){
+                return this[uid];
+            }, playerHall).sort(function(p1, p2){
+                return p2.score - p1.score;
             });
+            res.end(tpl.convertTpl('templates/rank.tpl', { list: list }));
         }
     },
 
@@ -411,7 +417,7 @@ function checkPlayer(session){
         if (!player) {
             player = new Player(session);
             playerHall[player.uid] = player;
-            broadcast.emit('player:join', player);
+            broadcast.emit('player:join', [player]);
         }
         session.round = player.round = streamLogList.round;
         session.score = player.score;
@@ -424,7 +430,7 @@ function checkPlayer(session){
 function leaveHall(uid){
     var player = playerHall[uid];
     delete playerHall[uid];
-    broadcast.emit('player:leave', player);
+    broadcast.emit('player:leave', [player]);
 }
 
 function isAdmin(uid){

@@ -1,12 +1,12 @@
 {
     "name": "bughunter", 
     "version": "0.0.1", 
-    "private": true, 
     "dependencies": {
-        "oauth": "0.9.5",
-        "socket.io": "0.8.7",
-        "connect": "1.8.2",
-        "connect-mongodb": "1.1.1",
-        "mongoose": "2.4.1"
+        "oauth": ">= 0.9.5",
+        "socket.io": ">= 0.8.7",
+        "connect": ">= 1.8.2",
+        "connect-mongodb": ">= 1.1.1",
+        "mongoose": ">= 2.4.1",
+        "formidable": ">= 1.0.8"
     }
 }
