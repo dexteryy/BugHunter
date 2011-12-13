@@ -16,4 +16,4 @@ var db_config = exports.db_config = {
 };
 exports.db_url = 'mongodb://' + db_config.host + '/' + db_config.dbname;
 
-exports.admins = ['1137591'];
+exports.admins = ['1137591', '2770683', '1170308', '1219643'];

@@ -38,8 +38,8 @@ oz.def("bughunter::view", [
                 scale = img.naturalWidth / img.offsetWidth,
                 offset = $(this).offset();
             bus.fire('showhand', [qid, [
-                (e.pageX - offset.left) * scale, 
-                (e.pageY - offset.top) * scale
+                (e.pageX - offset.left - 5) * scale, 
+                (e.pageY - offset.top - 5) * scale
             ]]);
         },
         ".quiz-mask.locked": nothing,

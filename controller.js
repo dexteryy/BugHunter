@@ -197,7 +197,7 @@ exports.routes = {
                 quiz.winner_cost = Date.now() - quiz.release.getTime();
                 quiz.save();
                 replaceStreamLog(quiz);
-                player.score += quiz.score;
+                player.score = (player.score || 0) + quiz.score;
                 player.correct++;
                 broadcast.emit('quiz:end', quiz);
                 res.end(JSON.stringify(result));
@@ -205,7 +205,7 @@ exports.routes = {
             function lose(r, quiz){
                 if (r == -1) {
                     if (quiz.punish) {
-                        player.score += quiz.punish;
+                        player.score = (player.score || 0) +quiz.punish;
                     }
                     player.mistake++;
                 }
