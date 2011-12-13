@@ -302,7 +302,7 @@ html,body{
     -moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box;
 }
 .hall-list{
-    width:400px;
+    width:200px;
     overflow:hidden;
 }
 .hall-list li{
@@ -578,6 +578,9 @@ html,body{
     margin:10px 0!important;
 }
 
+.library-rank{
+    margin:0 20px;
+}
 .library-rank .avatar{
     width:50px;
 }
@@ -594,3 +597,7 @@ html,body{
 .library-rank .score em{
     color:#f00;
 }
+.library-rank td span{
+    display:block;
+}
+

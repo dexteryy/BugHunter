@@ -230,12 +230,15 @@ exports.routes = {
     '/library/rank': {
         handler: function(req, res, next){
             res.setHeader('Content-Type', 'text/html');
-            var list = Object.keys(playerHall).map(function(uid){
-                return this[uid];
-            }, playerHall).sort(function(p1, p2){
-                return p1.score < p2.score;
+            var db = require('mongoskin').db(config.db_url);
+            db.collection("sessions").find().toArray(function(err, sessions){
+                var list = sessions.map(function(doc){
+                    return JSON.parse(doc.session);
+                }).sort(function(p1, p2){
+                    return p2.score - p1.score;
+                });
+                res.end(tpl.convertTpl('templates/rank.tpl', { list: list }));
             });
-            res.end(tpl.convertTpl('templates/rank.tpl', { list: list }));
         }
     },
 

@@ -12,8 +12,8 @@
 <table>
 	<thead>
 		<tr>
-			<th style="width:50px;">排名</th>
-			<th style="width:100px;">头像</th>
+			<th style="width:40px;">排名</th>
+			<th style="width:120px;text-align:center;">头像</th>
 			<th>ID</th>
 			<th style="width:100px;">得分</th>
 			<th style="width:50px;">答对</th>
@@ -26,7 +26,7 @@
     <% list.forEach(function(player, i){ %>
 		<tr>
             <td class="rank"><%=(i + 1)%></td>
-			<td>
+			<td style="text-align:center;">
                 <img src="<%=player.avatar%>" class="avatar">
                 <span><%=player.nic%></span>
             </td>
