@@ -232,9 +232,16 @@ exports.routes = {
             res.setHeader('Content-Type', 'text/html');
             var db = require('mongoskin').db(config.db_url);
             db.collection("sessions").find().toArray(function(err, sessions){
-                var list = sessions.map(function(doc){
-                    return JSON.parse(doc.session);
-                }).sort(function(p1, p2){
+                var players = {};
+                sessions.forEach(function(doc){
+                    var session = JSON.parse(doc.session);
+                    if (session.uid) {
+                        this[session.uid] = session;
+                    }
+                }, players);
+                var list = Object.keys(players).map(function(uid){
+                    return this[uid]
+                }, players).sort(function(p1, p2){
                     return p2.score - p1.score;
                 });
                 res.end(tpl.convertTpl('templates/rank.tpl', { list: list }));
