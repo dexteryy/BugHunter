@@ -65,7 +65,7 @@ define("mainloop", ["lang"], function(_){
                     activeStages.push(stage);
                 }
                 if (this.globalSignal) {
-                    return;
+                    return this;
                 }
             }
 
@@ -108,6 +108,7 @@ define("mainloop", ["lang"], function(_){
                 if (n >= 0) {
                     activeStages.splice(n, 1);
                     stageLib[name].state = 0;
+                    stageLib[name].pauseTime = +new Date();
                 }
             } else {
                 this.globalSignal = 0;
@@ -136,6 +137,10 @@ define("mainloop", ["lang"], function(_){
             return this;
         },
 
+        info: function(name){
+            return stageLib[name];
+        },
+
         addStage: function(name, ctx){
             if (name) {
                 stageLib[name] = {
@@ -143,6 +148,7 @@ define("mainloop", ["lang"], function(_){
                     ctx: ctx,
                     state: 1,
                     lastLoop: 0,
+                    pauseTime: 0,
                     renders: _.fnQueue()
                 };
                 activeStages.push(stageLib[name]);
@@ -173,8 +179,13 @@ define("mainloop", ["lang"], function(_){
             var self = this,
                 easing = opt.easing,
                 start = +new Date(),
+                lastPause = 0,
                 d = end - current;
-            return this.addRender(name, function(timestamp){
+            function render(timestamp){
+                if (lastPause !== this.pauseTime && start < this.pauseTime) {
+                    lastPause = this.pauseTime;
+                    start += +new Date() - lastPause;
+                }
                 var v, time = timestamp - start,
                     p = time/duration;
                 if (time <= 0) {
@@ -193,14 +204,15 @@ define("mainloop", ["lang"], function(_){
                 }
                 if (time >= duration) {
                     opt.step(end, duration);
-                    self.remove(name, arguments.callee);
+                    self.remove(name, render);
                     if (opt.callback) {
                         opt.callback();
                     }
                 } else {
                     opt.step(v, time);
                 }
-            });
+            }
+            return this.addRender(name, render);
         }
 
     };

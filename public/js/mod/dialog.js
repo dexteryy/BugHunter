@@ -19,6 +19,7 @@ define("dialog", [
 	// private methods and properties.
 	var _id = 'dui-dialog',
 	_ids = [],
+    _uuid = 0,
 	_current_dlg = null,
 	_isIE6 = ($.browser.msie && $.browser.version === '6.0') ? true: false,
 	_cache = {},
@@ -156,6 +157,7 @@ define("dialog", [
 				return;
 			}
             this.event = Event();
+            this.uuid = ++_uuid;
 
 			this.render();
 		},
@@ -167,7 +169,7 @@ define("dialog", [
 
 			_ids.push(id);
 
-            var mask = $("#" + _CSS_MASK);
+            var mask = $("#" + _CSS_MASK + '_' + this.uuid);
             if (!mask[0]) {
                 var win = $(window);
                 mask = $(tpl.format(_templ_mask, {
@@ -370,6 +372,7 @@ define("dialog", [
 				if (!el[0]) {
 					el = this.body.parent().append('<div class="dui-dialog-ft">' + html_str.join('') + '</div>');
 				} else {
+                    $('.dui-dialog-ft input', this.node).remove();
 					el.html(html_str.join('')).show();
 				}
 
@@ -595,6 +598,8 @@ define("dialog", [
             panel.find(".bd")[0].innerHTML = str;
             opt = opt || {};
             var buttons = opt.buttons || fn && ["confirm", "cancel"] || ["confirm"];
+            panel.find(".btn-confirm").remove();
+            panel.find(".btn-cancel").remove();
             panel.find(".ft")[0].innerHTML = buttons.map(function(btn){
                 return '<span class="bn-flat"><input type="button" class="btn-' + btn + '" value="' + btn_cfg[btn].text + '" /></span>';
             }).join("");
