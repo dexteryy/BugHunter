@@ -180,7 +180,7 @@ exports.routes = {
             Quiz.findById(qid, isAdmin(req.session.uid) ? win : check);
             function check(err, quiz){
                 if (checkQuizAnswer(quiz, pos)) {
-                    if (parseInt(quiz.winner)) {
+                    if (parseInt(quiz.winner, 10)) {
                         lose(-2, quiz);
                     } else {
                         win(err, quiz);
@@ -369,7 +369,15 @@ exports.routes = {
                                 res2.on("data", function(chunk){
                                     data += chunk;
                                 }).on("end", function(){
-                                    var json = JSON.parse(data);
+                                    var json;
+                                    try {
+                                        json = JSON.parse(data);
+                                    } catch (ex) {
+                                        res.setHeader('Content-Type', 'text/html');
+                                        res.write(data);
+                                        res.end();
+                                        return;
+                                    }
                                     req.session.avatar = (json.link.filter(function(i){
                                         return i["@rel"] === "icon";
                                     })[0] || {})["@href"];

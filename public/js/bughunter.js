@@ -71,7 +71,7 @@ oz.def("bughunter", [
         net.ajax({
             type: 'POST',
             url: '/api/reset'
-        })
+        });
     });
 
     bus.bind("showhand", function(qid, pos){
