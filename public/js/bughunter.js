@@ -118,7 +118,7 @@ oz.def("bughunter", [
             net.getJSON(API_BASE, {}, function(json){
                 localModel.set(json);
                 view.hideLoading();
-                if (!json.player.uid) {
+                if (!json.player.uid || !json.player.usr) {
                     view.showLogin();
                 }
                 self.connectServer();
